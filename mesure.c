@@ -45,7 +45,7 @@ static THD_FUNCTION(scanThd, arg) {
 
 
 
-		chThdSleepMilliseconds(100);
+		//chThdSleepMilliseconds(100);
     }
 }
 
