@@ -1,3 +1,7 @@
+//Ici on va mesurer s'il y a des objets autour du robot en balayant la zone
+//grace au capteur longue distance 
+
+
 #include "ch.h"
 #include "hal.h"
 #include <stdio.h>
