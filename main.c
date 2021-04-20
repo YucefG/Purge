@@ -90,7 +90,22 @@ int main(void)
     while (1) {
     //	VL53L0X_Dev_t mesure;
     	//VL53L0X_startMeasure(mesure,VL53L0X_DEVICEMODE_SINGLE_RANGING);
-    	chprintf((BaseSequentialStream *)&SD3, "L'objet est à une distance %d", VL53L0X_get_dist_mm());
+  //  	chprintf((BaseSequentialStream *)&SDU1, "Ceci est un test\n");
+
+    	chprintf((BaseSequentialStream *)&SDU1, "TEST ");
+    	unsigned int distance = (double)VL53L0X_get_dist_mm() - (double)30;
+    		chprintf((BaseSequentialStream *)&SDU1, "L'objet est à une distance %u\n", distance);
+
+		chThdSleepMilliseconds(1000);  //pause à reduire - relation entre vitesse et nombre de mesures
+		if(chThdShouldTerminateX()==false){
+			left_motor_set_speed(100);
+			right_motor_set_speed(-100);
+		}
+
+
+
+
+		}
 
 
 #ifdef SEND_FROM_MIC
@@ -148,7 +163,6 @@ int main(void)
         }*/
 #endif  /* SEND_FROM_MIC */
     }
-}
 
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
