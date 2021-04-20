@@ -10,6 +10,7 @@
 #include <communications.h>
 #include <fft.h>
 #include <arm_math.h>
+#include <stdbool.h>
 
 //semaphore
 static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
@@ -24,6 +25,9 @@ static float micLeft_output[FFT_SIZE];
 static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
+
+//Booléen de demarrage (au signal de purge)
+static bool demarrage;
 
 #define MIN_VALUE_THRESHOLD	10000 
 
@@ -58,43 +62,38 @@ void sound_remote(float* data){
 			max_norm_index = i;
 		}
 	}
-
-	bool demarrage = false;
-
 	//go forward
 	//if(max_norm_index >= FREQ_FORWARD_L && max_norm_index <= FREQ_FORWARD_H){
 		//left_motor_set_speed(600);
 		//right_motor_set_speed(600);
+	//}
 
-	}
 	//turn left
 	if(max_norm_index >= FREQ_LEFT_L && max_norm_index <= FREQ_LEFT_H){
 		demarrage = true;
+    	chprintf((BaseSequentialStream *)&SD3, "demarrage est TRUE\n ");
 	}
 
-	if(demarrage == true)
-	{
-		left_motor_set_speed(-600);
-		right_motor_set_speed(600);
-	}
+	//turn right ou mettre demarrage a 0
 
-	// return demarrage;
-	//turn right
+	else if(max_norm_index >= FREQ_RIGHT_L && max_norm_index <= FREQ_RIGHT_H){
+	//	left_motor_set_speed(600);
+	//	right_motor_set_speed(-600);
+		demarrage = false;
+		chprintf((BaseSequentialStream *)&SD3, "\n\nje m'arrete\n\n");
 
-	/*else if(max_norm_index >= FREQ_RIGHT_L && max_norm_index <= FREQ_RIGHT_H){
-		left_motor_set_speed(600);
-		right_motor_set_speed(-600);
 	}
 	//go backward
-	else if(max_norm_index >= FREQ_BACKWARD_L && max_norm_index <= FREQ_BACKWARD_H){
+	/*else if(max_norm_index >= FREQ_BACKWARD_L && max_norm_index <= FREQ_BACKWARD_H){
 		left_motor_set_speed(-600);
 		right_motor_set_speed(-600);
 	}
 	else{
 		left_motor_set_speed(0);
 		right_motor_set_speed(0);
+	//	chprintf((BaseSequentialStream *)&SDU1, "demarrage est FALSE\n",demarrage);
+
 	}*/
-	
 }
 
 /*
@@ -213,3 +212,8 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 		return NULL;
 	}
 }
+
+bool get_demarrage(void){
+	return demarrage;
+}
+

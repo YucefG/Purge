@@ -73,7 +73,7 @@ int main(void)
     //inits the motors
     motors_init();
     //init the long range sensor
-	VL53L0X_start();
+	VL53L0X_start();		//a deplacer dans la thread de mesure
 
 
     //send_tab is used to save the state of the buffer to send (double buffering)
@@ -88,19 +88,22 @@ int main(void)
 
     /* Infinite loop. */
     while (1) {
-    //	VL53L0X_Dev_t mesure;
-    	//VL53L0X_startMeasure(mesure,VL53L0X_DEVICEMODE_SINGLE_RANGING);
-  //  	chprintf((BaseSequentialStream *)&SDU1, "Ceci est un test\n");
-
-    	chprintf((BaseSequentialStream *)&SDU1, "TEST ");
-    	unsigned int distance = (double)VL53L0X_get_dist_mm() - (double)30;
-    		chprintf((BaseSequentialStream *)&SDU1, "L'objet est à une distance %u\n", distance);
-
-		chThdSleepMilliseconds(1000);  //pause à reduire - relation entre vitesse et nombre de mesures
-		if(chThdShouldTerminateX()==false){
-			left_motor_set_speed(100);
+    	mic_start(&processAudioData);
+    	if(get_demarrage()==0){
+    		left_motor_set_speed(0);
+    		right_motor_set_speed(0);
+    		//jeu de lumiere ou ...
+    	}
+    	else{
+    		unsigned int distance = (double)VL53L0X_get_dist_mm() - (double)30;
+    		chprintf((BaseSequentialStream *)&SD3, "L'objet est à une distance %u\n", distance);
+    		chThdSleepMilliseconds(1000);  //pause à reduire - relation entre vitesse et nombre de mesures
+  			left_motor_set_speed(100);
 			right_motor_set_speed(-100);
-		}
+    }
+
+
+
 
 
 
