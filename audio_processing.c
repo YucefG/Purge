@@ -27,7 +27,7 @@ static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
 //Booléen de demarrage (au signal de purge)
-static bool demarrage;
+static bool demarrage=0;
 
 #define MIN_VALUE_THRESHOLD	10000 
 
@@ -71,7 +71,6 @@ void sound_remote(float* data){
 	//turn left
 	if(max_norm_index >= FREQ_LEFT_L && max_norm_index <= FREQ_LEFT_H){
 		demarrage = true;
-    	chprintf((BaseSequentialStream *)&SD3, "demarrage est TRUE\n ");
 	}
 
 	//turn right ou mettre demarrage a 0
@@ -80,8 +79,6 @@ void sound_remote(float* data){
 	//	left_motor_set_speed(600);
 	//	right_motor_set_speed(-600);
 		demarrage = false;
-		chprintf((BaseSequentialStream *)&SD3, "\n\nje m'arrete\n\n");
-
 	}
 	//go backward
 	/*else if(max_norm_index >= FREQ_BACKWARD_L && max_norm_index <= FREQ_BACKWARD_H){

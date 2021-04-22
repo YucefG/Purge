@@ -17,6 +17,7 @@
 #include <fft.h>
 #include <communications.h>
 #include <arm_math.h>
+#include <mesure.h>
 //#include <mesure.h>
 
 //uncomment to send the FFTs results from the real microphones
@@ -89,31 +90,56 @@ int main(void)
     /* Infinite loop. */
     while (1) {
     	mic_start(&processAudioData);
-    	if(get_demarrage()==0){
+    	bool demarrage = get_demarrage();
+    	if(get_demarrage==0){
     		left_motor_set_speed(0);
     		right_motor_set_speed(0);
-
-    		//jeu de lumiere ou ...
-    	    palClearPad(GPIOD, GPIOD_LED1);
-    	    palClearPad(GPIOD, GPIOD_LED3);
-    	    palClearPad(GPIOD, GPIOD_LED5);
-    	    palClearPad(GPIOD, GPIOD_LED7);
     	}
-    	else{
-    		unsigned int distance = (double)VL53L0X_get_dist_mm() - (double)30;
+    		//jeu de lumiere ou ...
+    	if(get_demarrage()==0)
+    		palClearPad(GPIOD, GPIOD_LED1);
+    	chThdSleepMilliseconds(300);
+    	if(get_demarrage()==0){
+    	    palSetPad(GPIOD, GPIOD_LED1);
+    	    palClearPad(GPIOD, GPIOD_LED3);
+    	}
+    	chThdSleepMilliseconds(300);
+    	if(get_demarrage()==0){
+    	    palSetPad(GPIOD, GPIOD_LED3);
+    	    palClearPad(GPIOD, GPIOD_LED5);
+    	}
+    	chThdSleepMilliseconds(300);
+    	if(get_demarrage()==0){
+    	    palSetPad(GPIOD, GPIOD_LED5);
+    	    palClearPad(GPIOD, GPIOD_LED7);
+        	chThdSleepMilliseconds(300);
+    	    palSetPad(GPIOD, GPIOD_LED7);
+    	}
+    	if(get_demarrage()==1){
+    		//eteindre toutes les LEDs
+    		palSetPad(GPIOD, GPIOD_LED1);
+    		palSetPad(GPIOD, GPIOD_LED3);
+    		palSetPad(GPIOD, GPIOD_LED5);
+    		palSetPad(GPIOD, GPIOD_LED7);
+
+    		tour_mesures();
+
+    		//ajouter fonction reconnaissance d'objets (mettre les 1 et 0)
+    		//ajouter fonction poussée d'objets (vers les 1)
+    		//si jamais object rouge par ex, donner une plus grande acc, s'aider de camera, capteur de distance courte distance
+
+    		mic_start(&processAudioData);	//vraiment pas necessaire
+        	chThdSleepMilliseconds(3000);   //pause avant de relancer le programme
+        	mic_start(&processAudioData);	//vraiment pas necessaire
+
+
+ /*   		unsigned int distance = (double)VL53L0X_get_dist_mm() - (double)30;
     		chprintf((BaseSequentialStream *)&SD3, "L'objet est à une distance %u\n", distance);
     		chThdSleepMilliseconds(1000);  //pause à reduire - relation entre vitesse et nombre de mesures
   			left_motor_set_speed(100);
-			right_motor_set_speed(-100);
+			right_motor_set_speed(-100); */
+    	}
     }
-
-
-
-
-
-
-
-		}
 
 
 #ifdef SEND_FROM_MIC
