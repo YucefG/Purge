@@ -92,7 +92,12 @@ int main(void)
     	if(get_demarrage()==0){
     		left_motor_set_speed(0);
     		right_motor_set_speed(0);
+
     		//jeu de lumiere ou ...
+    	    palClearPad(GPIOD, GPIOD_LED1);
+    	    palClearPad(GPIOD, GPIOD_LED3);
+    	    palClearPad(GPIOD, GPIOD_LED5);
+    	    palClearPad(GPIOD, GPIOD_LED7);
     	}
     	else{
     		unsigned int distance = (double)VL53L0X_get_dist_mm() - (double)30;
