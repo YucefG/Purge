@@ -123,6 +123,8 @@ int main(void)
     		palSetPad(GPIOD, GPIOD_LED7);
 
     		tour_mesures();
+    		object_detec();
+    		object_push();
 
     		//ajouter fonction reconnaissance d'objets (mettre les 1 et 0)
     		//ajouter fonction poussée d'objets (vers les 1)
