@@ -108,7 +108,7 @@ void object_push(void){
 }
 
 void deplacement(void){
-	//bouger les moteurs
+	//bouger les moteurs : marche avant jusqu'a la base
 	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){
 		left_motor_set_speed(400);
 		right_motor_set_speed(400);
@@ -119,9 +119,13 @@ void deplacement(void){
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 
+	//marche arriere jusqu'a la base
 	while((left_motor_get_pos()>-TICS_1_ALLER)&&(right_motor_get_pos()>-TICS_1_ALLER)){
 		left_motor_set_speed(-400);
 		right_motor_set_speed(-400);
+		palTogglePad(GPIOD, GPIOD_LED1);
+		palTogglePad(GPIOD, GPIOD_LED3);
+
 	}
 	//on arrete et on initialise pour la prochaine mesure
 	left_motor_set_speed(0);
