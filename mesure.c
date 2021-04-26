@@ -96,6 +96,32 @@ void object_detec(void){
 			compteur++;
 	}
 	chprintf((BaseSequentialStream *)&SD3, "Il y a %u objets detectes",compteur);
+	// afficher le nombre d'objet detecte avec led
+	if(compteur == 1)
+	{
+		palSetPad(GPIOD, GPIOD_LED1);
+
+	}
+	else if(compteur== 2)
+	{
+		palSetPad(GPIOD, GPIOD_LED1);
+		palSetPad(GPIOD, GPIOD_LED3);
+
+	}
+	else if(compteur == 3)
+	{
+		palSetPad(GPIOD, GPIOD_LED1);
+		palSetPad(GPIOD, GPIOD_LED3);
+		palSetPad(GPIOD, GPIOD_LED5);
+
+	}
+	else(compteur == 4)
+	{
+		palSetPad(GPIOD, GPIOD_LED1);
+		palSetPad(GPIOD, GPIOD_LED3);
+		palSetPad(GPIOD, GPIOD_LED5);
+		palSetPad(GPIOD, GPIOD_LED7);
+	}
 }
 
 //3eme etape: pousser les objets
