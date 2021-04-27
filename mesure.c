@@ -115,7 +115,7 @@ void object_detec(void){
 		palSetPad(GPIOD, GPIOD_LED5);
 
 	}
-	else(compteur == 4)
+	else   //si superrieur a 4 on peut faire clignoter plus tard
 	{
 		palSetPad(GPIOD, GPIOD_LED1);
 		palSetPad(GPIOD, GPIOD_LED3);
