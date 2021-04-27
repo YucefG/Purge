@@ -109,6 +109,11 @@ void object_detec(void){
 		palSetPad(GPIOD, GPIOD_LED5);
 
 	}
+	else if(compteur ==4 )
+		lumiere_eteinte();
+
+	else
+		lumiere_clignote();
 
 }
 
