@@ -6,6 +6,7 @@
 #include <math.h>
 #include <motors.h>
 #include <chprintf.h>
+#include <lumiere.h>
 
 
 //defines du hardware
@@ -52,16 +53,8 @@ void tour_mesures(void){
 		tab_mesures[i]=(uint16_t)VL53L0X_get_dist_mm() - (uint16_t)30;   //est ce que les valeurs vont etre restreintes par le uint8? (max:255)
 		next_angle(100);
 	}
-	//message pour dire qu'il a fini
-	palClearPad(GPIOB, GPIOB_LED_BODY);
-	chThdSleepMilliseconds(300);
-	palSetPad(GPIOB, GPIOB_LED_BODY);
-	chThdSleepMilliseconds(300);
-	palClearPad(GPIOB, GPIOB_LED_BODY);
-	chThdSleepMilliseconds(300);
-	palSetPad(GPIOB, GPIOB_LED_BODY);
-	chThdSleepMilliseconds(300);
-	palClearPad(GPIOB, GPIOB_LED_BODY);
+	//jeu de lumiere pour dire qu'il a fini
+	signal_fin();
 }
 
 //2eme etape: detecter les objets
@@ -95,6 +88,7 @@ void object_detec(void){
 		if(tab_mesures[i]==1)
 			compteur++;
 	}
+
 	chprintf((BaseSequentialStream *)&SD3, "Il y a %u objets detectes",compteur);
 	// afficher le nombre d'objet detecte avec led
 	if(compteur == 1)
@@ -115,13 +109,11 @@ void object_detec(void){
 		palSetPad(GPIOD, GPIOD_LED5);
 
 	}
-	else(compteur == 4)
-	{
-		palSetPad(GPIOD, GPIOD_LED1);
-		palSetPad(GPIOD, GPIOD_LED3);
-		palSetPad(GPIOD, GPIOD_LED5);
-		palSetPad(GPIOD, GPIOD_LED7);
-	}
+	else if(compteur == 4)
+		lumiere_eteinte();
+
+	else
+		lumiere_clignote();
 }
 
 //3eme etape: pousser les objets
@@ -138,8 +130,10 @@ void deplacement(void){
 	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){
 		left_motor_set_speed(400);
 		right_motor_set_speed(400);
-	}
-			//on arrete et on initialise pour la prochaine mesure
+		palTogglePad(GPIOD, GPIOD_LED1);
+	}palSetPad(GPIOD, GPIOD_LED1);
+
+	//on arrete et on initialise pour la prochaine mesure
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
 	left_motor_set_pos(0);
@@ -149,10 +143,9 @@ void deplacement(void){
 	while((left_motor_get_pos()>-TICS_1_ALLER)&&(right_motor_get_pos()>-TICS_1_ALLER)){
 		left_motor_set_speed(-400);
 		right_motor_set_speed(-400);
-		palTogglePad(GPIOD, GPIOD_LED1);
-		palTogglePad(GPIOD, GPIOD_LED3);
+		palTogglePad(GPIOD, GPIOD_LED5);
+	}palSetPad(GPIOD, GPIOD_LED5);
 
-	}
 	//on arrete et on initialise pour la prochaine mesure
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
