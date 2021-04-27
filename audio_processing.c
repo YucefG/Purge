@@ -32,7 +32,11 @@ static bool demarrage=0;
 
 #define MIN_FREQ		10	//we don't analyze before this index to not use resources for nothing
 #define FREQ_FORWARD	16	//250Hz
+<<<<<<< HEAD
 #define FREQ_LEFT		64	//1000Hz frequence d'interet
+=======
+#define FREQ_LEFT		19	//296Hz
+>>>>>>> 44126ba4891a03c38f311552f3968ec13aaa0b85
 #define FREQ_RIGHT		23	//359HZ
 #define FREQ_BACKWARD	26	//406Hz
 #define MAX_FREQ		30	//we don't analyze after this index to not use resources for nothing
