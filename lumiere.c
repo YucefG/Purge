@@ -63,3 +63,31 @@ void signal_fin(void)
 	chThdSleepMilliseconds(300);
 	palClearPad(GPIOB, GPIOB_LED_BODY);
 }
+
+void check_compteur(void)
+{
+	// afficher le nombre d'objet detecte avec led
+	if(compteur == 1)
+	{
+		palSetPad(GPIOD, GPIOD_LED1);
+
+	}
+	else if(compteur== 2)
+	{
+		palSetPad(GPIOD, GPIOD_LED1);
+		palSetPad(GPIOD, GPIOD_LED3);
+
+	}
+	else if(compteur == 3)
+	{
+		palSetPad(GPIOD, GPIOD_LED1);
+		palSetPad(GPIOD, GPIOD_LED3);
+		palSetPad(GPIOD, GPIOD_LED5);
+
+	}
+	else if(compteur ==4 )
+		lumiere_eteinte();
+
+	else
+		lumiere_clignote();
+}

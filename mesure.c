@@ -26,6 +26,7 @@
 
 //variable globale: tableau de mesures
 uint16_t tab_mesures[NB_MESURES];			// uint16 ou 8 dicte la distance max
+uint8_t compteur =0;
 
 void next_angle(uint16_t speed){
 	//aller
@@ -83,37 +84,13 @@ void object_detec(void){
 		}
 	}
 	//nombre d'objets détéctés
-	uint8_t compteur =0;
 	for(uint8_t i=0; i<NB_MESURES; i++){
 		if(tab_mesures[i]==1)
 			compteur++;
 	}
 
 	chprintf((BaseSequentialStream *)&SD3, "Il y a %u objets detectes",compteur);
-	// afficher le nombre d'objet detecte avec led
-	if(compteur == 1)
-	{
-		palSetPad(GPIOD, GPIOD_LED1);
-
-	}
-	else if(compteur== 2)
-	{
-		palSetPad(GPIOD, GPIOD_LED1);
-		palSetPad(GPIOD, GPIOD_LED3);
-
-	}
-	else if(compteur == 3)
-	{
-		palSetPad(GPIOD, GPIOD_LED1);
-		palSetPad(GPIOD, GPIOD_LED3);
-		palSetPad(GPIOD, GPIOD_LED5);
-
-	}
-	else if(compteur ==4 )
-		lumiere_eteinte();
-
-	else
-		lumiere_clignote();
+	check_compteur();
 
 }
 
@@ -121,14 +98,18 @@ void object_detec(void){
 void object_push(void){
 	for(uint8_t i=0;i<NB_MESURES;i++){
 		if(tab_mesures[i]==1)
-			deplacement();
+		deplacement();
 		next_angle(100);
+		compteur--;
+
+		check_compteur();
 	}
 }
 
 void deplacement(void){
 	//bouger les moteurs : marche avant jusqu'a la base
 	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){
+		lumiere_eteinte();
 		left_motor_set_speed(400);
 		right_motor_set_speed(400);
 		palTogglePad(GPIOD, GPIOD_LED1);
@@ -142,6 +123,7 @@ void deplacement(void){
 
 	//marche arriere jusqu'a la base
 	while((left_motor_get_pos()>-TICS_1_ALLER)&&(right_motor_get_pos()>-TICS_1_ALLER)){
+		lumiere_eteinte();
 		left_motor_set_speed(-400);
 		right_motor_set_speed(-400);
 		palTogglePad(GPIOD, GPIOD_LED5);
