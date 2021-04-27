@@ -6,7 +6,6 @@
 #include <math.h>
 #include <motors.h>
 #include <chprintf.h>
-#include <lumiere.h>
 
 
 //defines du hardware
@@ -18,7 +17,7 @@
 #define DISTANCE_1_TOUR			130			//en mm
 
 //defines qu'on peut modifier
-#define NB_MESURES				70    //taille max limité par uint8
+#define NB_MESURES				16    //taille max limité par uint8
 #define TICS_360				(PERIM_CERC_PARC*TICS_1_TOUR)/DISTANCE_1_TOUR   //nb de tics pour faire un 360
 #define TICS_1_MESURE			TICS_360/NB_MESURES
 #define DIAM_ARENE				300
@@ -53,8 +52,16 @@ void tour_mesures(void){
 		tab_mesures[i]=(uint16_t)VL53L0X_get_dist_mm() - (uint16_t)30;   //est ce que les valeurs vont etre restreintes par le uint8? (max:255)
 		next_angle(100);
 	}
-	//jeu de lumiere pour dire qu'il a fini
-	signal_fin();
+	//message pour dire qu'il a fini
+	palClearPad(GPIOB, GPIOB_LED_BODY);
+	chThdSleepMilliseconds(300);
+	palSetPad(GPIOB, GPIOB_LED_BODY);
+	chThdSleepMilliseconds(300);
+	palClearPad(GPIOB, GPIOB_LED_BODY);
+	chThdSleepMilliseconds(300);
+	palSetPad(GPIOB, GPIOB_LED_BODY);
+	chThdSleepMilliseconds(300);
+	palClearPad(GPIOB, GPIOB_LED_BODY);
 }
 
 //2eme etape: detecter les objets
@@ -89,6 +96,8 @@ void object_detec(void){
 			compteur++;
 	}
 
+	show_mesure();
+
 	chprintf((BaseSequentialStream *)&SD3, "Il y a %u objets detectes",compteur);
 	// afficher le nombre d'objet detecte avec led
 	if(compteur == 1)
@@ -109,12 +118,13 @@ void object_detec(void){
 		palSetPad(GPIOD, GPIOD_LED5);
 
 	}
-	else if(compteur ==4 )
-		lumiere_eteinte();
-
-	else
-		lumiere_clignote();
-
+	else   //si superrieur a 4 on peut faire clignoter plus tard
+	{
+		palSetPad(GPIOD, GPIOD_LED1);
+		palSetPad(GPIOD, GPIOD_LED3);
+		palSetPad(GPIOD, GPIOD_LED5);
+		palSetPad(GPIOD, GPIOD_LED7);
+	}
 }
 
 //3eme etape: pousser les objets
@@ -131,10 +141,8 @@ void deplacement(void){
 	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){
 		left_motor_set_speed(400);
 		right_motor_set_speed(400);
-		palTogglePad(GPIOD, GPIOD_LED1);
-	}palSetPad(GPIOD, GPIOD_LED1);
-
-	//on arrete et on initialise pour la prochaine mesure
+	}
+			//on arrete et on initialise pour la prochaine mesure
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
 	left_motor_set_pos(0);
@@ -144,9 +152,10 @@ void deplacement(void){
 	while((left_motor_get_pos()>-TICS_1_ALLER)&&(right_motor_get_pos()>-TICS_1_ALLER)){
 		left_motor_set_speed(-400);
 		right_motor_set_speed(-400);
-		palTogglePad(GPIOD, GPIOD_LED5);
-	}palSetPad(GPIOD, GPIOD_LED5);
+		palTogglePad(GPIOD, GPIOD_LED1);
+		palTogglePad(GPIOD, GPIOD_LED3);
 
+	}
 	//on arrete et on initialise pour la prochaine mesure
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
@@ -160,4 +169,10 @@ uint16_t get_mesure_i(uint8_t i){
 
 void set_mesure_i(uint16_t distance_i, uint8_t i){
 	tab_mesures[i]=distance_i;		//set la i-eme mesure
+}
+
+void show_mesure(void){
+	for(uint8_t i=0;i<NB_MESURES;i++){
+    	chprintf((BaseSequentialStream *)&SD3, " | la %u-ieme mesure est à %u ",i,tab_mesures[i]);
+	}
 }

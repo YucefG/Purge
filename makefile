@@ -14,7 +14,6 @@ CSRC += ./main.c \
 		./communications.c \
 		./fft.c \
 		./mesure.c \
-		./lumiere.c \
 		
 #Header folders to include
 INCDIR += 
