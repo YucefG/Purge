@@ -11,6 +11,7 @@
 #include <chprintf.h>
 #include <motors.h>
 #include <audio/microphone.h>
+#include <selector.h>
 
 
 #include <audio_processing.h>
@@ -18,17 +19,6 @@
 #include <communications.h>
 #include <arm_math.h>
 #include <mesure.h>
-//#include <mesure.h>
-
-//uncomment to send the FFTs results from the real microphones
-//#define SEND_FROM_MIC
-
-//uncomment to use double buffering to send the FFT to the computer
-//#define DOUBLE_BUFFERING
-
-//uncomment to test the long distance sensors
-#define TEST_TOF
-
 
 static void serial_start(void)
 {
@@ -84,32 +74,40 @@ int main(void)
 
     /* Infinite loop. */
     while (1) {
-
-
-    	mic_start(&processAudioData);
-
-    	bool demarrage = get_demarrage();
-
-    	if(get_demarrage==0){
+    	//selecteur a 0 : repos
+    	if(get_selector()==0){
     		left_motor_set_speed(0);
     		right_motor_set_speed(0);
+    		lumiere_demarrage();
     	}
+    	//selecteur à 1: actif si frequence détectée
+    	else if(get_selector()==1){
+    		 //eteindre toutes les LEDs
+    		mic_start(&processAudioData);
+    		if(get_demarrage==0){
+    			left_motor_set_speed(0);
+    		    right_motor_set_speed(0);
+        		lumiere_demarrage();
+    		}
 
-    	//Si get_demarrage vaut 0 : jeu de lumiere
-    	lumiere_demarrage()
+    		if(get_demarrage()==1){
+    			//eteindre toutes les LEDs
+    			lumiere_eteinte();
 
-    	if(get_demarrage()==1){
-    		//eteindre toutes les LEDs
+    			tour_mesures();
+    			object_detec_proche();
+    			object_push();
+    		}
+    	}
+    	//selecteur à toute autre valeur: actif au démarrage
+    	else {
+    	   	 //eteindre toutes les LEDs
     		lumiere_eteinte();
-
-    	tour_mesures();
-    	object_detec();
-    	object_push();
-
-    		//mic_start(&processAudioData);	//vraiment pas necessaire
-        	//chThdSleepMilliseconds(3000);   //pause avant de relancer le programme
-        	//mic_start(&processAudioData);	//vraiment pas necessaire
+    		tour_mesures();
+    	    object_detec_proche();
+    	    object_push();
     	}
+    }
  }
 
 #define STACK_CHK_GUARD 0xe2dee396
