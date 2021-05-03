@@ -3,11 +3,14 @@
 #include <main.h>
 #include <usbcfg.h>
 #include <chprintf.h>
+
 #include <motors.h>
 #include <audio/microphone.h>
 #include <audio_processing.h>
 //#include <communications.h> ????
 //#include <fft.h>
+#include <communications.h>
+#include <fft.h>
 #include <arm_math.h>
 #include <stdbool.h>
 
@@ -25,18 +28,14 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
-//Booleen qui demarre au signal de purge
+//Booléen de demarrage (au signal de purge)
 static bool demarrage=0;
 
 #define MIN_VALUE_THRESHOLD	10000 
 
 #define MIN_FREQ		10	//we don't analyze before this index to not use resources for nothing
 #define FREQ_FORWARD	16	//250Hz
-<<<<<<< HEAD
-#define FREQ_LEFT		64	//1000Hz frequence d'interet
-=======
 #define FREQ_LEFT		19	//296Hz
->>>>>>> 44126ba4891a03c38f311552f3968ec13aaa0b85 ??
 #define FREQ_RIGHT		23	//359HZ
 #define FREQ_BACKWARD	26	//406Hz
 #define MAX_FREQ		30	//we don't analyze after this index to not use resources for nothing
@@ -65,16 +64,35 @@ void sound_remote(float* data){
 			max_norm_index = i;
 		}
 	}
+	//go forward
+	//if(max_norm_index >= FREQ_FORWARD_L && max_norm_index <= FREQ_FORWARD_H){
+		//left_motor_set_speed(600);
+		//right_motor_set_speed(600);
+	//}
+
+	//turn left
 	if(max_norm_index >= FREQ_LEFT_L && max_norm_index <= FREQ_LEFT_H){
 		demarrage = true;
 	}
+
+	//turn right ou mettre demarrage a 0
+
 	else if(max_norm_index >= FREQ_RIGHT_L && max_norm_index <= FREQ_RIGHT_H){
+	//	left_motor_set_speed(600);
+	//	right_motor_set_speed(-600);
 		demarrage = false;
 	}
-}
+	//go backward
+	/*else if(max_norm_index >= FREQ_BACKWARD_L && max_norm_index <= FREQ_BACKWARD_H){
+		left_motor_set_speed(-600);
+		right_motor_set_speed(-600);
+	}
+	else{
+		left_motor_set_speed(0);
+		right_motor_set_speed(0);
+	//	chprintf((BaseSequentialStream *)&SDU1, "demarrage est FALSE\n",demarrage);
 
-bool get_demarrage(void){
-	return demarrage;
+	}*/
 }
 
 /*
@@ -86,7 +104,6 @@ bool get_demarrage(void){
 *							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
 *	uint16_t num_samples	Tells how many data we get in total (should always be 640)
 */
-
 void processAudioData(int16_t *data, uint16_t num_samples){
 
 	/*
@@ -194,3 +211,8 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 		return NULL;
 	}
 }
+
+bool get_demarrage(void){
+	return demarrage;
+}
+

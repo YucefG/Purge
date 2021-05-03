@@ -40,6 +40,7 @@ void lumiere_demarrage(void){
 	    palClearPad(GPIOD, GPIOD_LED7);
     	chThdSleepMilliseconds(300);
 	    palSetPad(GPIOD, GPIOD_LED7);
+	}
 }
 
 void lumiere_clignote(void)
@@ -64,30 +65,39 @@ void signal_fin(void)
 	palClearPad(GPIOB, GPIOB_LED_BODY);
 }
 
-void check_compteur(void)
+void check_compteur(uint8_t compteur)
 {
 	// afficher le nombre d'objet detecte avec led
-	if(compteur == 1)
+	if(compteur == 0)
+		{
+			lumiere_eteinte();
+			chprintf((BaseSequentialStream *)&SD3, "Dans compteur ZERO");
+		}
+
+	else if(compteur == 1)
 	{
-		palSetPad(GPIOD, GPIOD_LED1);
+		palClearPad(GPIOD, GPIOD_LED1);
 
 	}
 	else if(compteur== 2)
 	{
-		palSetPad(GPIOD, GPIOD_LED1);
-		palSetPad(GPIOD, GPIOD_LED3);
-
+		palClearPad(GPIOD, GPIOD_LED1);
+		palClearPad(GPIOD, GPIOD_LED3);
 	}
 	else if(compteur == 3)
 	{
-		palSetPad(GPIOD, GPIOD_LED1);
-		palSetPad(GPIOD, GPIOD_LED3);
-		palSetPad(GPIOD, GPIOD_LED5);
-
+		palClearPad(GPIOD, GPIOD_LED1);
+		palClearPad(GPIOD, GPIOD_LED3);
+		palClearPad(GPIOD, GPIOD_LED5);
 	}
-	else if(compteur ==4 )
-		lumiere_eteinte();
-
-	else
+	else if(compteur ==4 ){
+		palClearPad(GPIOD, GPIOD_LED1);
+		palClearPad(GPIOD, GPIOD_LED3);
+		palClearPad(GPIOD, GPIOD_LED5);
+		palClearPad(GPIOD, GPIOD_LED7);
+	}
+	else{
 		lumiere_clignote();
+		chprintf((BaseSequentialStream *)&SD3, "Dans compteur ELSE");
+	}
 }
