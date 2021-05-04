@@ -59,7 +59,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 }
 
 
-static THD_WORKING_AREA(waProcessImage, 1024);
+static THD_WORKING_AREA(waProcessImage, 2048);
 static THD_FUNCTION(ProcessImage, arg) {
 
     chRegSetThreadName(__FUNCTION__);
@@ -94,16 +94,16 @@ static THD_FUNCTION(ProcessImage, arg) {
 		for(uint16_t i=0; i<2*IMAGE_BUFFER_SIZE; i+=2)
 		{
 			image_b[i/2] = (uint8_t)img_buff_ptr[i+1]&0b00011111;		//en commentaire car epuck passe en panic mode si on decommente
-	//		image_r[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
+			image_r[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
 
 		}
 
-	//	moyenne_r = moyenne_ligne(image_r);
+		moyenne_r = moyenne_ligne(image_r);
 		moyenne_b = moyenne_ligne(image_b);
 
 
-		chprintf((BaseSequentialStream *)&SD3, "|| Moyenne ROUGE: %u, moyenne BLEUE: %u ",moyenne_r,moyenne_b);
-		chThdSleepMilliseconds(1000);
+	//	chprintf((BaseSequentialStream *)&SD3, "|| Moyenne ROUGE: %u, moyenne BLEUE: %u ",moyenne_r,moyenne_b);
+	//	chThdSleepMilliseconds(1000);
 
 
 		//converts the width into a distance between the robot and the camera

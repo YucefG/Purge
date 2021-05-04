@@ -71,7 +71,7 @@ void sound_remote(float* data){
 	//}
 
 	//turn left
-	if(max_norm_index >= FREQ_LEFT_L && max_norm_index <= FREQ_LEFT_H){
+	if(max_norm_index >= FREQ_BACKWARD_L && max_norm_index <= FREQ_BACKWARD_H){
 		demarrage = true;
 	}
 

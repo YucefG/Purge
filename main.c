@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <msgbus/messagebus.h>
+
 
 
 #include "ch.h"
@@ -22,6 +24,10 @@
 #include <lumiere.h>
 #include <analyse_couleur.h>
 
+messagebus_t bus;
+MUTEX_DECL(bus_lock);
+CONDVAR_DECL(bus_condvar);
+
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = {
@@ -41,6 +47,9 @@ int main(void)
     chSysInit();
     mpu_init();
 
+    messagebus_init(&bus, &bus_lock, &bus_condvar);
+
+
     //starts the serial communication
     serial_start();
     //starts the USB communication
@@ -51,19 +60,17 @@ int main(void)
     //start the long range sensor
 	VL53L0X_start();
 	//start the short range sensor
-	//proximity_start();			//origine du probleme
+	proximity_start();			//origine du probleme
 
 
 	//start camera
     dcmi_start();
-	chThdSleepMilliseconds(1000);
-	chprintf((BaseSequentialStream *)&SD3, "|| Moyennué	bfbizbfzie");
+	/*chThdSleepMilliseconds(1000);
+	chprintf((BaseSequentialStream *)&SD3, "|| Moyennué	bfbizbfzie");*/
 
     po8030_start();
-	//process_image_start();
-
-
-
+	process_image_start();
+	calibrate_ir();
 
     /* Infinite loop. */
     while (1) {
@@ -101,10 +108,9 @@ int main(void)
     	    object_push();
     	}
 
-    /*	//tests sur sensors de courte distance
-    	calibrate_ir();
-    	chprintf((BaseSequentialStream *)&SD3, "  Valeur du capteur 0: %u ",get_calibrated_prox(0));
-    	chThdSleepMilliseconds(100); */
+   	//tests sur sensors de courte distance
+    //	chprintf((BaseSequentialStream *)&SD3, "%u,  ",get_calibrated_prox(0));
+    //	chThdSleepMilliseconds(100);
 
     }
  }
