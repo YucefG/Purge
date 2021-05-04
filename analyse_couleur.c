@@ -117,6 +117,21 @@ static THD_FUNCTION(ProcessImage, arg) {
     }
 }
 
+bool analyse_couleur_image(uint16_t moyenne_bleu, uint16_t moyenne_rouge){
+
+	// dans cette fonction le robot est a l'arret --> moteur a 0
+	left_motor_set_speed(0);
+	right_motor_set_speed(0);
+
+	//si objet couleur bleu ou autre --> retour a la base
+	// les moyennes sont bien static?
+	if(moyenne_bleu > moyenne_rouge)
+		return false;
+	else
+		//si objet rouge -->continue tout droit jusqu'en dehors de l'arene
+		return true;
+}
+
 float get_distance_cm(void){
 	return distance_cm;
 }

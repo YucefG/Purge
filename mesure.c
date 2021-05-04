@@ -210,7 +210,21 @@ void deplacement(void){
 		palClearPad(GPIOD, GPIOD_LED1);			//allumer la LED 1
 		last_pos = right_motor_get_pos();		//relever le compteur d'un des deux moteurs car vont dans le meme sens meme vitesse
 	}
-	palSetPad(GPIOD, GPIOD_LED1);				//eteindre la LED 1
+	palSetPad(GPIOD, GPIOD_LED1);//eteindre la LED 1
+
+	// Si analyse couleur image est true, le robot avance jusqu'arene
+	if(analyse_couleur_image()){
+		if(last_pos < TICS_1_ALLER){
+			while((left_motor_get_pos()<(TICS_1_ALLER-last_pos))&&(right_motor_get_pos()<(TICS_1_ALLER-last_pos)){
+				palSetPad(GPIOD, GPIOD_LED_FRONT);
+				left_motor_set_speed(800);
+				right_motor_set_speed(800);
+			}
+			palClearPad(GPIOD, GPIOD_LED_FRONT);
+		}
+	}
+
+
 
 	//on arrete et on initialise pour le chemin retour
 	left_motor_set_speed(0);
