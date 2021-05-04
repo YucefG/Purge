@@ -7,6 +7,10 @@
 #include <motors.h>
 #include <chprintf.h>
 #include <lumiere.h>
+#include <stdbool.h>
+#include <analyse_couleur.h>
+
+
 
 
 //defines du hardware
@@ -175,12 +179,15 @@ void object_push(void){
 
 void deplacement(void){
 	//bouger les moteurs : marche avant jusqu'a la base
-	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){
+	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){	//ajouter dans le while un booleen lié aux capteuurs de proximite
 		lumiere_eteinte();
 		left_motor_set_speed(600);
 		right_motor_set_speed(600);
 		lumiere_eteinte();
 		palClearPad(GPIOD, GPIOD_LED1);			//allumer la LED 1
+		//ajouter verif capteur proximite
+		//memoire de la position (on peut meme convertir en cm car assez simple pour garder memoire
+		//au cas ou on sort de la boucle
 	}
 	palSetPad(GPIOD, GPIOD_LED1);				//eteindre la LED 1
 
@@ -189,6 +196,11 @@ void deplacement(void){
 	right_motor_set_speed(0);
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
+
+	//prise en memoire de la position (
+
+	//si jamais booleen faux : fonction d'ajustement de la caméra lancé (rotation en face de l'objet) : si objet d'interet (test caméra) : poussée hors d'arene
+	// si objet pas d'interet,
 
 	//marche arriere jusqu'a la base
 	while((left_motor_get_pos()>-TICS_1_ALLER)&&(right_motor_get_pos()>-TICS_1_ALLER)){
@@ -213,6 +225,14 @@ uint16_t get_mesure_i(uint8_t i){
 void set_mesure_i(uint16_t distance_i, uint8_t i){
 	tab_mesures[i]=distance_i;		//set la i-eme mesure
 }
+
+/*Bool proximity_distance(void){
+	//vrai si objet detecte
+
+	//faux si aucun objet
+
+}*/
+
 
 void show_mesure(void){
 	for(uint8_t i=0;i<NB_MESURES;i++){

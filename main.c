@@ -12,9 +12,11 @@
 #include <motors.h>
 #include <audio/microphone.h>
 #include <selector.h>
+#include <sensors/proximity.h>
 
 
-#include <audio_processing.h
+
+#include <audio_processing.h>
 #include <arm_math.h>
 #include <mesure.h>
 #include <lumiere.h>
@@ -48,15 +50,25 @@ int main(void)
     motors_init();
     //start the long range sensor
 	VL53L0X_start();
+	//start the short range sensor
+	//proximity_start();			//origine du probleme
+
 
 	//start camera
     dcmi_start();
+	chThdSleepMilliseconds(1000);
+	chprintf((BaseSequentialStream *)&SD3, "|| Moyennué	bfbizbfzie");
+
     po8030_start();
+	//process_image_start();
+
+
+
 
     /* Infinite loop. */
     while (1) {
     	//selecteur a 0 : repos
-    	if(get_selector()==0){
+    	if(get_selector()==0){			//decommenter les lignes apres test sur caméra
     		left_motor_set_speed(0);
     		right_motor_set_speed(0);
     		lumiere_demarrage();
@@ -88,6 +100,12 @@ int main(void)
     	    object_detec_proche();
     	    object_push();
     	}
+
+    /*	//tests sur sensors de courte distance
+    	calibrate_ir();
+    	chprintf((BaseSequentialStream *)&SD3, "  Valeur du capteur 0: %u ",get_calibrated_prox(0));
+    	chThdSleepMilliseconds(100); */
+
     }
  }
 
