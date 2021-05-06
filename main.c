@@ -69,6 +69,8 @@ int main(void)
 	chprintf((BaseSequentialStream *)&SD3, "|| Moyennué	bfbizbfzie");*/
 
     po8030_start();
+    //mettre la white balance a zero
+    po8030_set_awb(0);
 	process_image_start();
 	calibrate_ir();
 

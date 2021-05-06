@@ -14,9 +14,12 @@
 
 static float distance_cm = 0;
 static uint16_t line_position = IMAGE_BUFFER_SIZE/2;	//middle
+static uint16_t moyenne_r = 0;
+static uint16_t moyenne_b = 0;
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
+
 
 /*
 
@@ -71,8 +74,6 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 
 	bool send_to_computer = true;
-	uint16_t moyenne_r = 0;
-	uint16_t moyenne_b = 0;
 
 
     while(1){
@@ -117,15 +118,12 @@ static THD_FUNCTION(ProcessImage, arg) {
     }
 }
 
-bool analyse_couleur_image(uint16_t moyenne_bleu, uint16_t moyenne_rouge){
 
-	// dans cette fonction le robot est a l'arret --> moteur a 0
-	left_motor_set_speed(0);
-	right_motor_set_speed(0);
-
+//fonction qui detecte le rouge
+bool detec_rouge(void){
 	//si objet couleur bleu ou autre --> retour a la base
 	// les moyennes sont bien static?
-	if(moyenne_bleu > moyenne_rouge)
+	if(moyenne_r < 120 )		//valeur a mettre en DEFINE
 		return false;
 	else
 		//si objet rouge -->continue tout droit jusqu'en dehors de l'arene
@@ -152,4 +150,12 @@ void affichage(uint8_t* buffer){
 			chprintf((BaseSequentialStream *)&SD3, " %u-eme valeur : %u ",i,buffer[i]);
 			chThdSleepMilliseconds(1000);
 		}
+}
+
+uint16_t get_moyenne_b(void){
+	return moyenne_b;
+}
+
+uint16_t get_moyenne_r(void){
+	return moyenne_r;
 }

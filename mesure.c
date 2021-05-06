@@ -39,7 +39,7 @@
 #define TICS_1_MESURE			TICS_360/NB_MESURES
 #define DIAM_ARENE				200
 #define TICS_1_ALLER			(DIAM_ARENE*TICS_1_TOUR)/DISTANCE_1_TOUR
-#define LIMITE_COLLISION		40							//pour pas de chocs via capt de prox
+#define LIMITE_COLLISION		200							//pour pas de chocs via capt de prox
 
 //variable globale: tableau de mesures
 uint16_t tab_mesures[NB_MESURES];			// uint16 ou 8 dicte la distance max
@@ -144,6 +144,28 @@ void object_detec_centre(void){
 
 void object_detec_proche(void){
 
+	/*faire un for pour le rebouclement du monde (si 14e-15e-0e-1e sont des valeurs detectables
+	on applique l'algo du point avec intensité max (=1) et on met a 0 les autres
+	if(premier point < Diam_arene){
+		l taille de l'objet
+		tant que (tab_mesur[j-1]<Diam_arene) et autre condition de limite (nb_mesures)
+			l++
+		if (l=0) donc pas de rebouclement
+		else
+		shortest_dst = diam_arene
+		pos_shortest = 15-l
+		for ( 15-l <= 15 avec l++)
+			et on compare t_m du 15-l indice jusqua 15e indice
+			puis
+			if (l=0)
+			on passe dans un autre for (le meme que celui du bas pour comparer shortest pos et shortest dist avec le debut du tableau
+
+		puis pour le monde non bouclé on évite les premiers et derniers termes quinsont deja a 0 ou 1
+
+		probleme si un objet est collé? ou alors choisir autre valeur 'peut etre meme negatives'
+
+	*/
+
 	for(uint8_t i=0; i<NB_MESURES; i++){
 		if(tab_mesures[i]<DIAM_ARENE){	//rayon ou diam
 			uint8_t j = i;
@@ -211,26 +233,32 @@ void deplacement(void){
 		last_pos = right_motor_get_pos();		//relever le compteur d'un des deux moteurs car vont dans le meme sens meme vitesse
 	}
 	palSetPad(GPIOD, GPIOD_LED1);//eteindre la LED 1
-
-	// Si analyse couleur image est true, le robot avance jusqu'arene
-	if(analyse_couleur_image()){
-		if(last_pos < TICS_1_ALLER){
-			while((left_motor_get_pos()<(TICS_1_ALLER-last_pos))&&(right_motor_get_pos()<(TICS_1_ALLER-last_pos)){
-				palSetPad(GPIOD, GPIOD_LED_FRONT);
-				left_motor_set_speed(800);
-				right_motor_set_speed(800);
-			}
-			palClearPad(GPIOD, GPIOD_LED_FRONT);
-		}
-	}
-
-
+	chprintf((BaseSequentialStream *)&SD3, "arret car obstacle");
 
 	//on arrete et on initialise pour le chemin retour
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
+	chThdSleepMilliseconds(1000); //pour marquer un temps d'arret avant analyse
+
+	//ajouter la fonction qui tourne l'epuck face à l'objet (angle env celui du capteur activé)
+
+	// Si analyse couleur image est true, le robot avance jusqu'arene
+	if(detec_rouge()){
+		chprintf((BaseSequentialStream *)&SD3, "rouge detecte");
+			while((left_motor_get_pos()<(TICS_1_ALLER-last_pos))&&(right_motor_get_pos()<(TICS_1_ALLER-last_pos))){
+				palSetPad(GPIOD, GPIOD_LED_FRONT);
+				left_motor_set_speed(800);
+				right_motor_set_speed(800);
+			}
+			palClearPad(GPIOD, GPIOD_LED_FRONT);
+	}
+	else{
+		chprintf((BaseSequentialStream *)&SD3, "bleu detecte");
+	}
+
+
 
 	//FAIRE DEMI TOUR SI ROUGE SINON GO ou inverse
 	//si jamais booleen faux : fonction d'ajustement de la caméra lancé (rotation en face de l'objet) : si objet d'interet (test caméra) : poussée hors d'arene
