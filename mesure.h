@@ -3,6 +3,8 @@
 
 bool prox_distance(void);
 
+void ajustement_angle(void);
+
 void next_angle(uint16_t speed);
 
 void tour_mesures(void);

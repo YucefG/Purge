@@ -15,7 +15,7 @@
 #include <audio/microphone.h>
 #include <selector.h>
 #include <sensors/proximity.h>
-
+#include <audio/play_melody.h>
 
 
 #include <audio_processing.h>
@@ -27,6 +27,15 @@
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
+
+//pour envoyer donnees sur ordinateur
+
+void SendUint8ToComputer(uint8_t* data, uint16_t size)
+{
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
+}
 
 static void serial_start(void)
 {
@@ -73,6 +82,10 @@ int main(void)
     po8030_set_awb(0);
 	process_image_start();
 	calibrate_ir();
+
+	// melody start
+	playMelodyStart();
+
 
     /* Infinite loop. */
     while (1) {
