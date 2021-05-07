@@ -54,6 +54,25 @@ _Bool prox_distance(void){
 		return true;
 }
 
+void ajustement_angle(void)
+{
+	uint16_t ajustement = 0;
+	if(prox_distance()){
+		while((get_calibrated_prox(PROX_FRONT_R17) > get_calibrated_prox(PROX_FRONT_L17)) &&
+				abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17)) > 50){ // seuil
+				// recentrer
+				left_motor_set_speed(200);
+				right_motor_set_speed(-200);
+		}
+		while((get_calibrated_prox(PROX_FRONT_R17) < get_calibrated_prox(PROX_FRONT_L17)) &&
+						abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17)) > 50){
+						// recentrer
+						left_motor_set_speed(-200);
+						right_motor_set_speed(200);
+		}
+	}
+}
+
 void next_angle(uint16_t speed){
 	//aller
 			while((left_motor_get_pos()<TICS_1_MESURE)&&(right_motor_get_pos()<TICS_1_MESURE)){
@@ -243,6 +262,7 @@ void deplacement(void){
 	chThdSleepMilliseconds(1000); //pour marquer un temps d'arret avant analyse
 
 	//ajouter la fonction qui tourne l'epuck face à l'objet (angle env celui du capteur activé)
+	ajustement_angle();
 
 	// Si analyse couleur image est true, le robot avance jusqu'arene
 	if(detec_rouge()){
