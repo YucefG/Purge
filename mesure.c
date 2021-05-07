@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <analyse_couleur.h>
 #include <sensors/proximity.h>
+#include <audio/play_melody.h>
 
 
 
@@ -44,6 +45,8 @@
 //variable globale: tableau de mesures
 uint16_t tab_mesures[NB_MESURES];			// uint16 ou 8 dicte la distance max
 uint8_t compteur;
+static uint8_t compte_g = 0;
+static uint8_t compte_d = 0;
 
 _Bool prox_distance(void){
 	chprintf((BaseSequentialStream *)&SD3, "capt : %u, ",get_calibrated_prox(PROX_FRONT_R17));
@@ -57,19 +60,31 @@ _Bool prox_distance(void){
 void ajustement_angle(void)
 {
 	uint16_t ajustement = 0;
+	ajustement = abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17))
+	chprintf((BaseSequentialStream *)&SD3, "la difference entre les deux capteurs %u ",ajustement);
+	chThdSleepMilliseconds(1000);
+
 	if(prox_distance()){
 		while((get_calibrated_prox(PROX_FRONT_R17) > get_calibrated_prox(PROX_FRONT_L17)) &&
-				abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17)) > 50){ // seuil
+				ajustement > 50){ // seuil a modif
 				// recentrer
+			chprintf((BaseSequentialStream *)&SD3, "l'objet se situe plus a droite R17 ");
 				left_motor_set_speed(200);
 				right_motor_set_speed(-200);
+				compte_d++;
 		}
+
+
 		while((get_calibrated_prox(PROX_FRONT_R17) < get_calibrated_prox(PROX_FRONT_L17)) &&
-						abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17)) > 50){
+				ajustement > 50){
 						// recentrer
+			chprintf((BaseSequentialStream *)&SD3, "l'objet se situe plus a gauche R17 ");
 						left_motor_set_speed(-200);
 						right_motor_set_speed(200);
+						compte_g ++;
 		}
+	chprintf((BaseSequentialStream *)&SD3, "l'obje s'est déplace  %u fois  ",compte);
+
 	}
 }
 
@@ -95,6 +110,8 @@ void tour_mesures(void){
 
 	//bouger aux NB_MESURES positions et faire les mesures
 	for(uint8_t i=0; i<NB_MESURES; i++){
+		//joue la melodie de mission imposssible quand il inspecte
+		playMelody(IMPOSSIBLE_MISSION, ML_FORCE_CHANGE, tempo);
 		tab_mesures[i]=(uint16_t)VL53L0X_get_dist_mm() - (uint16_t)OFFSET;
 		next_angle(200);
 	}
@@ -269,12 +286,18 @@ void deplacement(void){
 		chprintf((BaseSequentialStream *)&SD3, "rouge detecte");
 			while((left_motor_get_pos()<(TICS_1_ALLER-last_pos))&&(right_motor_get_pos()<(TICS_1_ALLER-last_pos))){
 				palSetPad(GPIOD, GPIOD_LED_FRONT);
+
+				//joue la mort de mario pour indiquer que l'objet est dead
+				playMelody(MARIO_DEATH, ML_FORCE_CHANGE, tempo);
+
 				left_motor_set_speed(800);
 				right_motor_set_speed(800);
 			}
 			palClearPad(GPIOD, GPIOD_LED_FRONT);
 	}
 	else{
+		//signe de victoire quand il trouve un bleu
+		playMelody(MARIO_FLAG, ML_FORCE_CHANGE, tempo);
 		chprintf((BaseSequentialStream *)&SD3, "bleu detecte");
 	}
 
@@ -284,20 +307,40 @@ void deplacement(void){
 	//si jamais booleen faux : fonction d'ajustement de la caméra lancé (rotation en face de l'objet) : si objet d'interet (test caméra) : poussée hors d'arene
 	// si objet pas d'interet,
 
+
 	//marche arriere jusqu'a la base
-	while((left_motor_get_pos()>-last_pos)&&(right_motor_get_pos()>-last_pos)){
+	while((left_motor_get_pos()>(last_pos- TICS_1_ALLER))&&(right_motor_get_pos()>(last_pos -TICS_1_ALLER))){
 		lumiere_eteinte();
 		left_motor_set_speed(-600);
 		right_motor_set_speed(-600);
 		palClearPad(GPIOD, GPIOD_LED5);			//allumer la LED5
 	}
-	palSetPad(GPIOD, GPIOD_LED5);				//éteindre la LED5
+	palSetPad(GPIOD, GPIOD_LED5);	//éteindre la LED5
 
+	while(compte_d !=0){
+		left_motor_set_speed(-200);
+		right_motor_set_speed(200);
+		compte_d --;
+	}
+
+	while(compte_g !=0 ){
+		left_motor_set_speed(200);
+		right_motor_set_speed(-200);
+		compte_g --;
+	}
+		//allumer la LED5
 	//on arrete et on initialise pour la prochaine mesure
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
+}
+
+while((left_motor_get_pos()>-last_pos &&(right_motor_get_pos()>-last_pos))){
+	lumiere_eteinte();
+	left_motor_set_speed(-600);
+	right_motor_set_speed(-600);
+	palClearPad(GPIOD, GPIOD_LED5);			//allumer la LED5
 }
 
 uint16_t get_mesure_i(uint8_t i){
