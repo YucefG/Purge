@@ -33,6 +33,8 @@
 #define PROX_FRONT_L49			6
 #define PROX_FRONT_L17			7
 
+
+
 //defines qu'on peut modifier
 #define NB_MESURES				30    //taille max limité par uint8
 #define TICS_360				(PERIM_CERC_PARC*TICS_1_TOUR)/DISTANCE_1_TOUR   //nb de tics pour faire un 360
@@ -46,7 +48,7 @@ uint16_t tab_mesures[NB_MESURES];			// uint16 ou 8 dicte la distance max
 uint8_t compteur;
 
 _Bool prox_distance(void){
-	chprintf((BaseSequentialStream *)&SD3, "capt : %u, ",get_calibrated_prox(PROX_FRONT_R17));
+	//chprintf((BaseSequentialStream *)&SD3, "capt : %u, ",get_calibrated_prox(PROX_FRONT_R17));
 	if((get_calibrated_prox(PROX_FRONT_R17)>LIMITE_COLLISION) ||
 	  (get_calibrated_prox(PROX_FRONT_L17)>LIMITE_COLLISION))
 		return false;
@@ -165,37 +167,90 @@ void object_detec_proche(void){
 		probleme si un objet est collé? ou alors choisir autre valeur 'peut etre meme negatives'
 
 	*/
+	//si on a un cas de rebouclement du monde
 
-	for(uint8_t i=0; i<NB_MESURES; i++){
-		if(tab_mesures[i]<DIAM_ARENE){	//rayon ou diam
-			uint8_t j = i;
-			if(tab_mesures[j]<DIAM_ARENE){
 
-				while((tab_mesures[j+1]<DIAM_ARENE)&&((j+1)<NB_MESURES))
-					j++;
 
-				if(j==i)
-					tab_mesures[i]=1;
+	if(tab_mesures[0]<DIAM_ARENE && tab_mesures[NB_MESURES-1]<DIAM_ARENE){
+		uint16_t shortest_dist_g=tab_mesures[NB_MESURES-1];
+		uint8_t pos_shortest_g = NB_MESURES-1;
+		uint16_t shortest_dist_d=tab_mesures[0];
+		uint8_t pos_shortest_d = 0;
+		//compter la taille de l'objet sens normal
+		uint8_t j=0;
+		while((tab_mesures[j+1]<DIAM_ARENE)&&((j+1)<NB_MESURES))
+			j++;
+		uint8_t k=0;
+		while((tab_mesures[NB_MESURES-1-k-1]<DIAM_ARENE)&& (k<NB_MESURES))
+			k++;
 
-				else{
-					uint16_t shortest_dist=DIAM_ARENE;
-					uint8_t pos_shortest = i;
-					for(uint8_t k=0; k+i<=j; k++){				//<= ou <?
-						if(tab_mesures[k+i]<shortest_dist){
-							shortest_dist = tab_mesures[k+i];
-							tab_mesures[pos_shortest]=0;
-							pos_shortest = k+i;
-							tab_mesures[k+i]=1;
-						}
-						else
-							tab_mesures[k+i]=0;
-					}
-				}
+		//taille de l'objet k+j+2
+		for(uint8_t l=1; l<=j;l++){			//< ou <=
+			if(tab_mesures[l]<shortest_dist_d){
+				shortest_dist_d = tab_mesures[l];
+				tab_mesures[pos_shortest_d]=0;
+				pos_shortest_d = l;
+				tab_mesures[l]=1;
 			}
-			i=j;
+			else
+				tab_mesures[l]=0;
+		}
+
+		for(uint8_t t=1; t<=k;t++){
+			if(tab_mesures[NB_MESURES-1-t]<shortest_dist_g){
+
+		    	tab_mesures[pos_shortest_g]=0;
+				shortest_dist_g = tab_mesures[NB_MESURES-1-t];
+
+				pos_shortest_g = NB_MESURES-1-t;
+				tab_mesures[NB_MESURES-1-t]=1;
+
+			}
+			else
+				tab_mesures[NB_MESURES-1-t]=0;
+		}
+ 	//on compare les deux minimas des deux cotés du monde
+		if(shortest_dist_d<shortest_dist_g){
+			tab_mesures[pos_shortest_d]=1;
+			tab_mesures[pos_shortest_g]=0;
+
 		}
 		else
-			tab_mesures[i]=0;
+		{
+			tab_mesures[pos_shortest_d]=0;
+			tab_mesures[pos_shortest_g]=1;
+		}
+	}
+
+	for(uint8_t i=0; i<NB_MESURES; i++){
+		if(tab_mesures[i]!=0 && tab_mesures[i]!=1){
+			if(tab_mesures[i]<DIAM_ARENE){	//rayon ou diam
+				uint8_t j = i;
+				if(tab_mesures[j]<DIAM_ARENE){				//inutile..?
+					while((tab_mesures[j+1]<DIAM_ARENE)&&((j+1)<NB_MESURES))
+						j++;
+					if(j==i)
+						tab_mesures[i]=1;
+					else{
+						uint16_t shortest_dist=DIAM_ARENE;
+						uint8_t pos_shortest = i;
+						for(uint8_t k=0; k+i<=j; k++){				//<= ou <?
+							if(tab_mesures[k+i]<shortest_dist){
+								shortest_dist = tab_mesures[k+i];
+								tab_mesures[pos_shortest]=0;
+								pos_shortest = k+i;
+								tab_mesures[k+i]=1;
+							}
+							else
+							tab_mesures[k+i]=0;
+						}
+					}
+				}
+				i=j;
+			}
+			else
+				tab_mesures[i]=0;
+		}
 	}
 
 	//mesure du nombre d'objets
@@ -233,8 +288,6 @@ void deplacement(void){
 		last_pos = right_motor_get_pos();		//relever le compteur d'un des deux moteurs car vont dans le meme sens meme vitesse
 	}
 	palSetPad(GPIOD, GPIOD_LED1);//eteindre la LED 1
-	chprintf((BaseSequentialStream *)&SD3, "arret car obstacle");
-
 	//on arrete et on initialise pour le chemin retour
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
@@ -246,16 +299,12 @@ void deplacement(void){
 
 	// Si analyse couleur image est true, le robot avance jusqu'arene
 	if(detec_rouge()){
-		chprintf((BaseSequentialStream *)&SD3, "rouge detecte");
 			while((left_motor_get_pos()<(TICS_1_ALLER-last_pos))&&(right_motor_get_pos()<(TICS_1_ALLER-last_pos))){
 				palSetPad(GPIOD, GPIOD_LED_FRONT);
 				left_motor_set_speed(800);
 				right_motor_set_speed(800);
 			}
 			palClearPad(GPIOD, GPIOD_LED_FRONT);
-	}
-	else{
-		chprintf((BaseSequentialStream *)&SD3, "bleu detecte");
 	}
 
 
