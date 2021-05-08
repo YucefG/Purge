@@ -403,9 +403,6 @@ void set_mesure_i(uint16_t distance_i, uint8_t i){
 	tab_mesures[i]=distance_i;		//set la i-eme mesure
 }
 
-
-
-
 void show_mesure(void){
 	for(uint8_t i=0;i<NB_MESURES;i++){
     	chprintf((BaseSequentialStream *)&SD3, "§ %u-ieme mesure = %u ",i,tab_mesures[i]);

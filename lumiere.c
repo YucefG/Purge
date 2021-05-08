@@ -24,7 +24,7 @@ void lumiere_demarrage(void){
 	if(get_demarrage()==0)
 		palClearPad(GPIOD, GPIOD_LED1);
 
-	chThdSleepMilliseconds(300);// regler la rapidite du jeu de lumiere
+	chThdSleepMilliseconds(300);// Regler la rapidite du jeu de lumiere
 	if(get_demarrage()==0){
 	    palSetPad(GPIOD, GPIOD_LED1);
 	    palClearPad(GPIOD, GPIOD_LED3);
@@ -71,7 +71,6 @@ void check_compteur(uint8_t compteur)
 	if(compteur == 0)
 		{
 			lumiere_eteinte();
-			chprintf((BaseSequentialStream *)&SD3, "Dans compteur ZERO");
 		}
 
 	else if(compteur == 1)
@@ -98,6 +97,5 @@ void check_compteur(uint8_t compteur)
 	}
 	else{
 		lumiere_clignote();
-		chprintf((BaseSequentialStream *)&SD3, "Dans compteur ELSE");
 	}
 }
