@@ -42,7 +42,7 @@
 #define TICS_1_MESURE			TICS_360/NB_MESURES
 #define DIAM_ARENE				200
 #define TICS_1_ALLER			(DIAM_ARENE*TICS_1_TOUR)/DISTANCE_1_TOUR
-#define LIMITE_COLLISION		200							//pour pas de chocs via capt de prox
+#define LIMITE_COLLISION		1000							//pour pas de chocs via capt de prox
 
 //variable globale: tableau de mesures
 uint16_t tab_mesures[NB_MESURES];			// uint16 ou 8 dicte la distance max
@@ -62,31 +62,27 @@ _Bool prox_distance(void){
 void ajustement_angle(void)
 {
 	uint16_t ajustement = 0;
-	ajustement = abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17))
-	chprintf((BaseSequentialStream *)&SD3, "la difference entre les deux capteurs %u ",ajustement);
+	ajustement = abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17));
 	chThdSleepMilliseconds(1000);
 
-	if(prox_distance()){
-		while((get_calibrated_prox(PROX_FRONT_R17) > get_calibrated_prox(PROX_FRONT_L17)) &&
-				ajustement > 50){ // seuil a modif
-				// recentrer
-			chprintf((BaseSequentialStream *)&SD3, "l'objet se situe plus a droite R17 ");
-				left_motor_set_speed(200);
-				right_motor_set_speed(-200);
-				compte_d++;
+	while((get_calibrated_prox(PROX_FRONT_R17) > get_calibrated_prox(PROX_FRONT_L17)) &&
+			ajustement > 20){ // seuil a modif
+			// recentrer
+		chThdSleepMilliseconds(100);
+
+			left_motor_set_speed(100);
+			right_motor_set_speed(-100);
+			compte_d++;
 		}
 
+	while((get_calibrated_prox(PROX_FRONT_R17) < get_calibrated_prox(PROX_FRONT_L17)) &&
+			ajustement > 20){
+					// recentrer
+		chThdSleepMilliseconds(100);
 
-		while((get_calibrated_prox(PROX_FRONT_R17) < get_calibrated_prox(PROX_FRONT_L17)) &&
-				ajustement > 50){
-						// recentrer
-			chprintf((BaseSequentialStream *)&SD3, "l'objet se situe plus a gauche R17 ");
-						left_motor_set_speed(-200);
-						right_motor_set_speed(200);
-						compte_g ++;
-		}
-	chprintf((BaseSequentialStream *)&SD3, "l'obje s'est déplace  %u fois  ",compte);
-
+		left_motor_set_speed(-100);
+		right_motor_set_speed(100);
+		compte_g ++;
 	}
 }
 
@@ -109,11 +105,12 @@ void tour_mesures(void){
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 	palSetPad(GPIOB, GPIOB_LED_BODY);
+	//joue la melodie de mission imposssible quand il inspecte
+
+//	playMelody(IMPOSSIBLE_MISSION, ML_FORCE_CHANGE, NULL);
 
 	//bouger aux NB_MESURES positions et faire les mesures
 	for(uint8_t i=0; i<NB_MESURES; i++){
-		//joue la melodie de mission imposssible quand il inspecte
-		playMelody(IMPOSSIBLE_MISSION, ML_FORCE_CHANGE, tempo);
 		tab_mesures[i]=(uint16_t)VL53L0X_get_dist_mm() - (uint16_t)OFFSET;
 		next_angle(200);
 	}
@@ -309,6 +306,9 @@ void object_push(void){
 		}
 		next_angle(200);
 	}
+	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
+	chThdSleepMilliseconds(3000);
+
 }
 
 void deplacement(void){
@@ -316,83 +316,76 @@ void deplacement(void){
 	uint16_t last_pos =0;
 	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)&&
 		   prox_distance()){
-		lumiere_eteinte();
-		left_motor_set_speed(600);
-		right_motor_set_speed(600);
-		lumiere_eteinte();
-		palClearPad(GPIOD, GPIOD_LED1);			//allumer la LED 1
+		marche_avant(600);
+		//allumer la LED 1
 		last_pos = right_motor_get_pos();		//relever le compteur d'un des deux moteurs car vont dans le meme sens meme vitesse
 	}
 	palSetPad(GPIOD, GPIOD_LED1);//eteindre la LED 1
 	//on arrete et on initialise pour le chemin retour
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
-	left_motor_set_pos(0);
-	right_motor_set_pos(0);
-	chThdSleepMilliseconds(1000); //pour marquer un temps d'arret avant analyse
+	chThdSleepMilliseconds(100); //pour marquer un temps d'arret avant analyse
 
 	//ajouter la fonction qui tourne l'epuck face à l'objet (angle env celui du capteur activé)
 	ajustement_angle();
 
 	// Si analyse couleur image est true, le robot avance jusqu'arene
 	if(detec_rouge()){
-			while((left_motor_get_pos()<(TICS_1_ALLER-last_pos))&&(right_motor_get_pos()<(TICS_1_ALLER-last_pos))){
-				palSetPad(GPIOD, GPIOD_LED_FRONT);
+		//joue la mort de mario pour indiquer que l'objet est dead
+		playMelody(MARIO_DEATH, ML_FORCE_CHANGE, NULL);
+		while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){
+			palSetPad(GPIOD, GPIOD_LED_FRONT);
+			marche_avant(800);
+		}
+		palClearPad(GPIOD, GPIOD_LED_FRONT);
+		palSetPad(GPIOD, GPIOD_LED1);//eteindre la LED 1
 
-				//joue la mort de mario pour indiquer que l'objet est dead
-				playMelody(MARIO_DEATH, ML_FORCE_CHANGE, tempo);
+		left_motor_set_speed(0);
+		right_motor_set_speed(0);
+		chThdSleepMilliseconds(100);
 
-				left_motor_set_speed(800);
-				right_motor_set_speed(800);
-			}
-			palClearPad(GPIOD, GPIOD_LED_FRONT);
+		while((left_motor_get_pos()>last_pos)&&(right_motor_get_pos()>last_pos)){
+			marche_arriere(800);
+		}
+		palClearPad(GPIOD, GPIOD_LED_FRONT);
+		palSetPad(GPIOD, GPIOD_LED5);//eteindre la LED 5
 	}
 	else{
 		//signe de victoire quand il trouve un bleu
-		playMelody(MARIO_FLAG, ML_FORCE_CHANGE, tempo);
-		chprintf((BaseSequentialStream *)&SD3, "bleu detecte");
+//		playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
 	}
 
 
-
-	//FAIRE DEMI TOUR SI ROUGE SINON GO ou inverse
-	//si jamais booleen faux : fonction d'ajustement de la caméra lancé (rotation en face de l'objet) : si objet d'interet (test caméra) : poussée hors d'arene
-	// si objet pas d'interet,
-
-
-	//marche arriere jusqu'a la base
-	while((left_motor_get_pos()>(last_pos- TICS_1_ALLER))&&(right_motor_get_pos()>(last_pos -TICS_1_ALLER))){
-		lumiere_eteinte();
-		left_motor_set_speed(-600);
-		right_motor_set_speed(-600);
-		palClearPad(GPIOD, GPIOD_LED5);			//allumer la LED5
-	}
-	palSetPad(GPIOD, GPIOD_LED5);	//éteindre la LED5
+	left_motor_set_speed(0);
+	right_motor_set_speed(0);
+	chThdSleepMilliseconds(1000);
 
 	while(compte_d !=0){
-		left_motor_set_speed(-200);
-		right_motor_set_speed(200);
+		chThdSleepMilliseconds(100);
+		left_motor_set_speed(-100);
+		right_motor_set_speed(100);
 		compte_d --;
 	}
 
 	while(compte_g !=0 ){
-		left_motor_set_speed(200);
-		right_motor_set_speed(-200);
+		chThdSleepMilliseconds(100);
+		left_motor_set_speed(100);
+		right_motor_set_speed(-100);
 		compte_g --;
 	}
+
+	//marche arriere jusqu'a la base
+	while((left_motor_get_pos()>0)&&(right_motor_get_pos()>0)){
+		marche_arriere(600);
+	}
+	palSetPad(GPIOD, GPIOD_LED5);	//éteindre la LED5
+
 		//allumer la LED5
 	//on arrete et on initialise pour la prochaine mesure
 	left_motor_set_speed(0);
 	right_motor_set_speed(0);
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
-}
-
-while((left_motor_get_pos()>-last_pos &&(right_motor_get_pos()>-last_pos))){
-	lumiere_eteinte();
-	left_motor_set_speed(-600);
-	right_motor_set_speed(-600);
-	palClearPad(GPIOD, GPIOD_LED5);			//allumer la LED5
 }
 
 uint16_t get_mesure_i(uint8_t i){
@@ -408,4 +401,22 @@ void show_mesure(void){
     	chprintf((BaseSequentialStream *)&SD3, "§ %u-ieme mesure = %u ",i,tab_mesures[i]);
     	chThdSleepMilliseconds(1000);		//permet de lire en direct sur le realterm
 	}
+}
+
+
+//va en avant et allume la LED1 (à eteindre apres)
+void marche_avant(uint16_t speed){
+	lumiere_eteinte();
+	left_motor_set_speed(speed);
+	right_motor_set_speed(speed);
+	lumiere_eteinte();
+	palClearPad(GPIOD, GPIOD_LED1);
+}
+
+//va en arriere et allume la LED5 (à eteindre apres)
+void marche_arriere(uint16_t speed){
+	lumiere_eteinte();
+	left_motor_set_speed(-speed);
+	right_motor_set_speed(-speed);
+	palClearPad(GPIOD, GPIOD_LED5);			//allumer la LED5
 }

@@ -78,6 +78,7 @@ int main(void)
 	// Calibration du capteur de courte proximite
 	calibrate_ir();
 	//Start les melodies utilisees par le robot
+	dac_start();
 	playMelodyStart();
 
 

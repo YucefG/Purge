@@ -7,10 +7,6 @@
 #include <motors.h>
 #include <audio/microphone.h>
 #include <audio_processing.h>
-//#include <communications.h> ????
-//#include <fft.h>
-#include <communications.h>
-#include <fft.h>
 #include <arm_math.h>
 #include <stdbool.h>
 
