@@ -100,7 +100,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 bool detec_rouge(void){
 	//Si objet est de couleur bleu ou autre --> retour a la base
 
-	if(moyenne_r < SEUIL )		//la valeur du seuil qui distingue le rouge des autres couleurd a ete choisie de maniere empirique
+	if(moyenne_r < SEUIL )		//la valeur du seuil qui distingue le rouge des autres couleurs a ete choisie de maniere empirique
 		return false;
 	else
 	//Si objet rouge -->continue tout droit jusqu'en dehors de l'arene
@@ -119,11 +119,3 @@ void affichage(uint8_t* buffer){ // a supprimer
 			chThdSleepMilliseconds(1000);
 		}
 }
-
-/*uint16_t get_moyenne_b(void){
-	return moyenne_b;
-}
-
-uint16_t get_moyenne_r(void){
-	return moyenne_r;
-}*/

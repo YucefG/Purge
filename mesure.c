@@ -12,11 +12,7 @@
 #include <sensors/proximity.h>
 #include <audio/play_melody.h>
 
-
-
-
-
-//defines du hardware
+//Defin du hardware
 #define PI						3.14
 #define ANGLE360				360
 #define D_ENTRE_ROUES			53			//en mm
@@ -34,9 +30,7 @@
 #define PROX_FRONT_L49			6
 #define PROX_FRONT_L17			7
 
-
-
-//defines qu'on peut modifier
+// Defin que l'on peut modifier
 #define NB_MESURES				30    //taille max limité par uint8
 #define TICS_360				(PERIM_CERC_PARC*TICS_1_TOUR)/DISTANCE_1_TOUR   //nb de tics pour faire un 360
 #define TICS_1_MESURE			TICS_360/NB_MESURES
@@ -297,6 +291,7 @@ void object_detec_proche(void){
 }
 
 //3eme etape: pousser les objets
+
 void object_push(void){
 	for(uint8_t i=0;i<NB_MESURES;i++){
 		if(tab_mesures[i]==1){
@@ -308,10 +303,91 @@ void object_push(void){
 	}
 	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
 	chThdSleepMilliseconds(3000);
-
 }
 
 void deplacement(void){
+	//bouger les moteurs : marche avant jusqu'a la base
+	uint16_t last_pos =0;
+	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)&&
+		   prox_distance()){
+		marche_avant(600);
+		//allumer la LED 1
+		last_pos = right_motor_get_pos();		//relever le compteur d'un des deux moteurs car vont dans le meme sens meme vitesse
+	}
+	palSetPad(GPIOD, GPIOD_LED1);//eteindre la LED 1
+	//on arrete et on initialise pour le chemin retour
+	left_motor_set_speed(0);
+	right_motor_set_speed(0);
+	chThdSleepMilliseconds(100); //pour marquer un temps d'arret avant analyse
+
+	//ajouter la fonction qui tourne l'epuck face à l'objet (angle env celui du capteur activé)
+	ajustement_angle();
+
+	//joue la mort de mario pour indiquer que l'objet est dead
+		playMelody(MARIO_DEATH, ML_FORCE_CHANGE, NULL);
+		while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){
+			palSetPad(GPIOD, GPIOD_LED_FRONT);
+			marche_avant(800);
+		}
+		palClearPad(GPIOD, GPIOD_LED_FRONT);
+		palSetPad(GPIOD, GPIOD_LED1);//eteindre la LED 1
+
+		left_motor_set_speed(0);
+		right_motor_set_speed(0);
+		chThdSleepMilliseconds(100);
+
+		while((left_motor_get_pos()>last_pos)&&(right_motor_get_pos()>last_pos)){
+			marche_arriere(800);
+		}
+		palClearPad(GPIOD, GPIOD_LED_FRONT);
+		palSetPad(GPIOD, GPIOD_LED5);//eteindre la LED 5
+
+	left_motor_set_speed(0);
+	right_motor_set_speed(0);
+	chThdSleepMilliseconds(1000);
+
+	while(compte_d !=0){
+		chThdSleepMilliseconds(100);
+		left_motor_set_speed(-100);
+		right_motor_set_speed(100);
+		compte_d --;
+	}
+
+	while(compte_g !=0 ){
+		chThdSleepMilliseconds(100);
+		left_motor_set_speed(100);
+		right_motor_set_speed(-100);
+		compte_g --;
+	}
+
+	//marche arriere jusqu'a la base
+	while((left_motor_get_pos()>0)&&(right_motor_get_pos()>0)){
+		marche_arriere(600);
+	}
+	palSetPad(GPIOD, GPIOD_LED5);	//éteindre la LED5
+
+		//allumer la LED5
+	//on arrete et on initialise pour la prochaine mesure
+	left_motor_set_speed(0);
+	right_motor_set_speed(0);
+	left_motor_set_pos(0);
+	right_motor_set_pos(0);
+}
+
+void object_push_couleur(void){
+	for(uint8_t i=0;i<NB_MESURES;i++){
+		if(tab_mesures[i]==1){
+		deplacement_couleur();
+		compteur--;
+		check_compteur(compteur);
+		}
+		next_angle(200);
+	}
+	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
+	chThdSleepMilliseconds(3000);
+}
+
+void deplacement_couleur(void){
 	//bouger les moteurs : marche avant jusqu'a la base
 	uint16_t last_pos =0;
 	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)&&

@@ -69,7 +69,7 @@ int main(void)
 	//Start des capteurs de proximite
 	proximity_start();
 	//Start la camera du robot
-    dcmi_start();
+	dcmi_start();
     po8030_start();
     //Mise du white balance a zero pour mieux distinguer les couleurs RGB
     po8030_set_awb(0);
@@ -105,11 +105,11 @@ int main(void)
     			//Eteindre toutes les LEDs
     			lumiere_eteinte();
 
-    			// Dans ces trois fonctions decrties dans mesure.c, le robot detecte les objets, s'approche des objets
+    			// Dans ces trois fonctions decrites dans mesure.c, le robot detecte les objets, s'approche des objets
     			// et pousse les objets
     			tour_mesures();
     			object_detec_proche();
-    			object_push();
+    			object_push_couleur();
     		}
     	}
     	//Selecteur a 2 : deuxieme mode lance
@@ -135,10 +135,10 @@ int main(void)
     		}
     	}
     	else {
+    		// Mode static sans jeu de lumiere
     		lumiere_eteinte();
-    		tour_mesures();
-    	    object_detec_proche();
-    	    object_push();
+			left_motor_set_speed(0);
+		    right_motor_set_speed(0);
     	}
     }
  }
