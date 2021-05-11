@@ -135,6 +135,28 @@ int main(void)
     		}
 
     	}
+
+    	else if(get_selector()==3){
+    	    mic_start(&processAudioData);
+
+    	    if(get_demarrage==0){
+    	    left_motor_set_speed(0);
+    	    right_motor_set_speed(0);
+    	    lumiere_demarrage();
+    	    }
+
+    	    if(get_demarrage()==1){
+    	    //Eteindre toutes les LEDs
+   			lumiere_eteinte();
+
+    	// Dans ces trois fonctions decrties dans mesure.c, le robot detecte les objets, s'approche des objets
+   		// contourne l'objet et le ramene vers le centre de l'arene
+    	    tour_mesures();
+    	    object_detec_proche();
+    	    object_push_contournement();
+    	  }
+
+    	}
     	else if(get_selector()==15){
     		chprintf((BaseSequentialStream *)&SD3, " %u, ",(uint16_t)VL53L0X_get_dist_mm() - (uint16_t)30);
 

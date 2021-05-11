@@ -18,6 +18,13 @@ void marche_avant(void);
 void marche_arriere(void);
 int16_t pi_regulator(float distance, float goal)
 
+//contournement objet
+void initialisation_moteur(void);
+void object_push_contournement(void);
+void deplacement_contournement(void);
+void contournement_objet(void);
+
+
 
 
 #endif /* MESURE_H */
