@@ -301,13 +301,15 @@ void object_push(void){
 		}
 		next_angle(200);
 	}
-	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
+//	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
 	chThdSleepMilliseconds(3000);
 }
 
 void deplacement(void){
 	//bouger les moteurs : marche avant jusqu'a la base
 	uint16_t last_pos =0;
+	left_motor_set_pos(0);
+	right_motor_set_pos(0);
 	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)&&
 		   prox_distance()){
 		marche_avant(600);
@@ -324,7 +326,7 @@ void deplacement(void){
 	ajustement_angle();
 
 	//joue la mort de mario pour indiquer que l'objet est dead
-		playMelody(MARIO_DEATH, ML_FORCE_CHANGE, NULL);
+//		playMelody(MARIO_DEATH, ML_FORCE_CHANGE, NULL);
 		while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)){
 			palSetPad(GPIOD, GPIOD_LED_FRONT);
 			marche_avant(800);

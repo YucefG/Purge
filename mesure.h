@@ -8,7 +8,8 @@ void tour_mesures(void);
 void object_detec_proche(void);
 void object_push(void);
 void deplacement(void);
-void object_push_couleur(void);
+void deplacement_couleur(void);
+
 void object_push_couleur(void);
 uint8_t get_mesure_i(uint8_t i);
 void set_mesure_i(uint8_t distance_i, uint8_t i);

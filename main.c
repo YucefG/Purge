@@ -133,8 +133,14 @@ int main(void)
     			object_detec_proche();
     			object_push();
     		}
+
+    	}
+    	else if(get_selector()==15){
+    		chprintf((BaseSequentialStream *)&SD3, " %u, ",(uint16_t)VL53L0X_get_dist_mm() - (uint16_t)30);
+
     	}
     	else {
+
     		// Mode static sans jeu de lumiere
     		lumiere_eteinte();
 			left_motor_set_speed(0);
