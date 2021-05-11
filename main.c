@@ -84,7 +84,7 @@ int main(void)
 
     /* Boucle infinie */
     while (1) {
-    	//Selecteur a 0 : il y a seulement un jeu de led et le robot est au repos
+    	//Selecteur a 0 : mode static + jeu de LEDs
     	if(get_selector()==0){
     		left_motor_set_speed(0);
     		right_motor_set_speed(0);
@@ -92,7 +92,7 @@ int main(void)
     	}
 
     	//Selecteur a 1: premier mode lance
-    	// Le robot au son de la purge se met a analyser les objets dans son arene et ne sortira uniquement les rouges
+    	// Le robot au son  "purge" se met a analyser les objets dans son arene et ne sortira uniquement les rouges
     	else if(get_selector()==1){
     		mic_start(&processAudioData);
     		if(get_demarrage==0){
@@ -105,7 +105,7 @@ int main(void)
     			//Eteindre toutes les LEDs
     			lumiere_eteinte();
 
-    			// Dans ces trois fonctions decrites dans mesure.c, le robot detecte les objets, s'approche des objets
+    			// Dans ces trois fonctions, ecrites dans mesure.c, le robot detecte les objets, s'approche des objets
     			// et pousse les objets
     			tour_mesures();
     			object_detec_proche();

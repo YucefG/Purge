@@ -38,6 +38,11 @@
 #define TICS_1_ALLER			(DIAM_ARENE*TICS_1_TOUR)/DISTANCE_1_TOUR
 #define LIMITE_COLLISION		1000							//pour pas de chocs via capt de prox
 
+#define KP						800.0f
+#define KI 						3.5f	//must not be zero
+#define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
+#define MAX_SUM_ERROR 			(MOTOR_SPEED_LIMIT/KI)
+
 //variable globale: tableau de mesures
 uint16_t tab_mesures[NB_MESURES];			// uint16 ou 8 dicte la distance max
 uint8_t compteur;
@@ -112,91 +117,7 @@ void tour_mesures(void){
 }
 
 //2eme etape: detecter les objets
-/*
-void object_detec_centre(void){
-	//place des 1 ou la distance est inf a DIAM_ARENE
-	for(uint8_t i=0; i<NB_MESURES; i++){
-		if(tab_mesures[i]<DIAM_ARENE){			//pour eviter les erreurs de bruit, on posera que c un objet a partir de ... 1 de suite
-			tab_mesures[i]=1;
-	//    	chprintf((BaseSequentialStream *)&SD3, "§ %u-ieme: objet TROUVE ",i);
-	//    	chThdSleepMilliseconds(1000);
-		}
-		else{
-	//		chprintf((BaseSequentialStream *)&SD3, "§ %u-ieme: objet ABSENT ",i);
-			tab_mesures[i]=0;
-	//		chThdSleepMilliseconds(1000);
-		}
-	}
-	show_mesure();
- 	 DECOMMENTER SI BESOIN DE LAUTRE TECHNIQUE
-
-	for(uint8_t i=0; i<NB_MESURES; i++){
-//		chprintf((BaseSequentialStream *)&SD3, "\n\nDans la mesure: %u ",i);
-	//	chThdSleepMilliseconds(1000);
-		if(tab_mesures[i]==1){
-	//	if(tab_mesures[i]<DIAM_ARENE){
-			uint8_t j = i+1;
-
-			if(tab_mesures[j]==1){
-				while((tab_mesures[j+1]==1)&&(j<NB_MESURES)){  //j<=?
-					j++;
-				}
-				 	METHODE DU CENTRE DE LOBJET
-							for(uint8_t k=0; k<=j-i; k++){		//<= ou <?
-								if(k==(j-i)/2)
-									tab_mesures[k+i]=1;
-								else
-									tab_mesures[k+i]=0;
-							}
-				}
-			}
-			i=j;
-		}
-		else
-			tab_mesures[i]=0;
-	show_mesure();
-
-
-	//nombre d'objets détéctés
-	for(uint8_t i=0; i<NB_MESURES; i++){
-		if(tab_mesures[i]==1)
-			compteur++;
-	}
-
-//	show_mesure();
-
-	chprintf((BaseSequentialStream *)&SD3, "Il y a %u objets detectes",compteur);
-	check_compteur(compteur);
-
-}
-*/
-
 void object_detec_proche(void){
-
-	/*faire un for pour le rebouclement du monde (si 14e-15e-0e-1e sont des valeurs detectables
-	on applique l'algo du point avec intensité max (=1) et on met a 0 les autres
-	if(premier point < Diam_arene){
-		l taille de l'objet
-		tant que (tab_mesur[j-1]<Diam_arene) et autre condition de limite (nb_mesures)
-			l++
-		if (l=0) donc pas de rebouclement
-		else
-		shortest_dst = diam_arene
-		pos_shortest = 15-l
-		for ( 15-l <= 15 avec l++)
-			et on compare t_m du 15-l indice jusqua 15e indice
-			puis
-			if (l=0)
-			on passe dans un autre for (le meme que celui du bas pour comparer shortest pos et shortest dist avec le debut du tableau
-
-		puis pour le monde non bouclé on évite les premiers et derniers termes quinsont deja a 0 ou 1
-
-		probleme si un objet est collé? ou alors choisir autre valeur 'peut etre meme negatives'
-
-	*/
-	//si on a un cas de rebouclement du monde
-
-
 
 	if(tab_mesures[0]<DIAM_ARENE && tab_mesures[NB_MESURES-1]<DIAM_ARENE){
 		uint16_t shortest_dist_g=tab_mesures[NB_MESURES-1];
@@ -291,7 +212,6 @@ void object_detec_proche(void){
 }
 
 //3eme etape: pousser les objets
-
 void object_push(void){
 	for(uint8_t i=0;i<NB_MESURES;i++){
 		if(tab_mesures[i]==1){
@@ -310,7 +230,8 @@ void deplacement(void){
 	uint16_t last_pos =0;
 	while((left_motor_get_pos()<TICS_1_ALLER)&&(right_motor_get_pos()<TICS_1_ALLER)&&
 		   prox_distance()){
-		marche_avant(600);
+		pi_regulator(distance, (TICS_1_ALLER * DISTANCE_1_TOUR) / TICS_1_TOUR )
+		//marche_avant(600);
 		//allumer la LED 1
 		last_pos = right_motor_get_pos();		//relever le compteur d'un des deux moteurs car vont dans le meme sens meme vitesse
 	}
@@ -496,3 +417,35 @@ void marche_arriere(uint16_t speed){
 	right_motor_set_speed(-speed);
 	palClearPad(GPIOD, GPIOD_LED5);			//allumer la LED5
 }
+
+//simple PI regulator implementation
+int16_t pi_regulator(float distance, float goal){
+
+	float error = 0;
+	float speed = 0;
+
+	static float sum_error = 0;
+
+	error = distance - goal;
+
+	//disables the PI regulator if the error is to small
+	//this avoids to always move as we cannot exactly be where we want and
+	//the camera is a bit noisy
+	if(fabs(error) < ERROR_THRESHOLD){
+		return 0;
+	}
+
+	sum_error += error;
+
+	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
+	if(sum_error > MAX_SUM_ERROR){
+		sum_error = MAX_SUM_ERROR;
+	}else if(sum_error < -MAX_SUM_ERROR){
+		sum_error = -MAX_SUM_ERROR;
+	}
+
+	speed = KP * error + KI * sum_error;
+
+    return (int16_t)speed;
+}
+

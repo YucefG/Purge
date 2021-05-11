@@ -15,6 +15,7 @@ void set_mesure_i(uint8_t distance_i, uint8_t i);
 void show_mesure(void);
 void marche_avant(void);
 void marche_arriere(void);
+int16_t pi_regulator(float distance, float goal)
 
 
 
