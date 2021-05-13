@@ -30,7 +30,7 @@
 #define PROX_FRONT_L49			6
 #define PROX_FRONT_L17			7
 
-// Defin que l'on peut modifier
+// Define ce que l'on peut modifier
 #define NB_MESURES				30    //taille max limité par uint8
 #define TICS_360				(PERIM_CERC_PARC*TICS_1_TOUR)/DISTANCE_1_TOUR   //nb de tics pour faire un 360
 #define TICS_90					TICS_360/4
@@ -45,8 +45,8 @@
 #define MAX_SUM_ERROR 			(MOTOR_SPEED_LIMIT/KI)
 
 //variable globale: tableau de mesures
-uint16_t tab_mesures[NB_MESURES];			// uint16 ou 8 dicte la distance max
-uint8_t compteur;
+static uint16_t tab_mesures[NB_MESURES];			// uint16 ou 8 dicte la distance max
+static uint8_t compteur;
 static uint8_t compte_g = 0;
 static uint8_t compte_d = 0;
 
@@ -584,6 +584,7 @@ void deplacement_contournement(void){
 void contournement_objet(void){
 	uint16_t premier_arret = 0;
 	premier_arret = left_motor_get_pos();
+	uint16_t compteur_contournement = 0;
 
 	//tourne de 90° vers la gauche
 	while((left_motor_get_pos()<TICS_90)&&(right_motor_get_pos()<TICS_90)){
@@ -592,10 +593,14 @@ void contournement_objet(void){
 	}
 	initialisation_moteur();
     // on avance de 7cm vers la gauche
-	while((left_motor_get_pos()<70)&&(right_motor_get_pos()<70)){
+	if(get_calibrated_prox(PROX_FRONT_R49) != 0){
+		while((left_motor_get_pos()<70)&&(right_motor_get_pos()<70)){
 			left_motor_set_speed(200);
 			right_motor_set_speed(200);
+			compteur_contournement ++;
+		}
 	}
+
 	initialisation_moteur();
 	//tourne de 90° vers la droite
 	while((left_motor_get_pos()<TICS_90)&&(right_motor_get_pos()<TICS_90)){
@@ -603,11 +608,13 @@ void contournement_objet(void){
 			right_motor_set_speed(-200);
 	}
 	initialisation_moteur();
-    // on avance de 4cm vers la droite
-	while((left_motor_get_pos()<40)&&(right_motor_get_pos()<40)){
+
+    // on avance de 4cm tout droit
+		while((left_motor_get_pos()<40)&&(right_motor_get_pos()<40)){
 			left_motor_set_speed(200);
 			right_motor_set_speed(200);
-	}
+		}
+
 	initialisation_moteur();
 	//tourne de 90° vers la droite
 	while((left_motor_get_pos()<TICS_90)&&(right_motor_get_pos()<TICS_90)){
@@ -616,9 +623,10 @@ void contournement_objet(void){
 	}
 	initialisation_moteur();
     // on avance de 7cm vers la droite
-	while((left_motor_get_pos()<70)&&(right_motor_get_pos()<70)){
+	while((left_motor_get_pos()<70)&&(right_motor_get_pos()<70) && compteur_contournement !=0){
 			left_motor_set_speed(200);
 			right_motor_set_speed(200);
+			compteur_contournement --;
 	}
 	initialisation_moteur();
 	//tourne de 90° vers la droite (face a l'objet)
@@ -632,8 +640,6 @@ void contournement_objet(void){
 		left_motor_set_speed(200);
 		right_motor_set_speed(200);
 	}
-
-
 }
 
 
