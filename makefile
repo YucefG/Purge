@@ -15,6 +15,9 @@ CSRC += ./main.c \
 		./mesure.c \
 		./lumiere.c \
 		./analyse_couleur.c \
+		./deplacement.c \
+		./fonctions_maths.c \
+
 		
 #Header folders to include
 INCDIR += 

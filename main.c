@@ -18,6 +18,7 @@
 #include <mesure.h>
 #include <lumiere.h>
 #include <analyse_couleur.h>
+#include <deplacement.h>
 
 
 // On initialise ici le bus afin de pouvoir utiliser les capteurs de proximite "proximity"
@@ -84,6 +85,8 @@ int main(void)
 
     /* Boucle infinie */
     while (1) {
+		chprintf((BaseSequentialStream *)&SD3, "valeur du selecteur: %u",get_selector());
+
     	//Selecteur a 0 : mode static + jeu de LEDs
     	if(get_selector()==0){
     		left_motor_set_speed(0);
@@ -91,56 +94,69 @@ int main(void)
     		lumiere_demarrage();
     	}
 
-    	//Selecteur a 1: premier mode lance
+    	//Selecteur a 1: premier mode lance || Selecteur 2: sort tous les objets
     	// Le robot au son  "purge" se met a analyser les objets dans son arene et ne sortira uniquement les rouges
-    	else if(get_selector()==1){
+    	if((get_selector()==1)||(get_selector()==2)){
     		mic_start(&processAudioData);
-    		if(get_demarrage==0){
+    		if(get_demarrage()==0){
     			left_motor_set_speed(0);
     		    right_motor_set_speed(0);
         		lumiere_demarrage();
     		}
+    		chprintf((BaseSequentialStream *)&SD3, "dans le mode statique");
 
-    		if(get_demarrage()==1){
+    	//	if(get_demarrage()==1){
     			//Eteindre toutes les LEDs
+        		chprintf((BaseSequentialStream *)&SD3, "va demarrer");
+
     			lumiere_eteinte();
 
     			// Dans ces trois fonctions, ecrites dans mesure.c, le robot detecte les objets, s'approche des objets
     			// et pousse les objets
     			tour_mesures();
     			object_detec_proche();
-    			object_push_couleur();
-    		}
-    	}
-    	//Selecteur a 2 : deuxieme mode lance
-    	//Le robot attaque tous les objets dans son arene et sortira tous les objets
-    	else if(get_selector()==2){
-    		mic_start(&processAudioData);
-
-    		if(get_demarrage==0){
-    			left_motor_set_speed(0);
-    		    right_motor_set_speed(0);
-        		lumiere_demarrage();
-    		}
-
-    		if(get_demarrage()==1){
-    			//Eteindre toutes les LEDs
-    			lumiere_eteinte();
-
-    			// Dans ces trois fonctions decrties dans mesure.c, le robot detecte les objets, s'approche des objets
-    			// et pousse les objets
-    			tour_mesures();
-    			object_detec_proche();
+           //     show_mesures();
     			object_push();
-    		}
-
+    	//	}
     	}
-    	else if(get_selector()==15){
-    		chprintf((BaseSequentialStream *)&SD3, " %u, ",(uint16_t)VL53L0X_get_dist_mm() - (uint16_t)30);
-
+    	if(get_selector()==15){
+            bool boolv=1;
+            bool boolf=0;
+    		chprintf((BaseSequentialStream *)&SD3, "boolv= %u, boolf=%u ",boolv,boolf);
     	}
+    	if(get_selector()==14){
+    	    //tester le pi en ligne droite avec consigne prédéfinie.
+    		float position = 0;
+            float distance_arbitraire=-10; //en cm? en tics?
+            right_motor_set_pos(0);   //init des compteurs
+            left_motor_set_pos(0);
+        //    uint16_t compteur_test =0; //simulation du compteur qui s'incremente
+            while(get_selector()==14){
+                position = (float)((float)(right_motor_get_pos()*13)/(float)(1000)); //retourne le compteur
+
+                //on retourne la consigne de vitesse donnée à l'epuck
+
+                marche_avant(pi_regulator(position,distance_arbitraire));
+   //             chThdSleepMilliseconds(1000);
+              /*  if (get_selector()==13){
+                	compteur_test++;
+                    chprintf((BaseSequentialStream *)&SD3, "compteur_test s'incremente: ");
+                    chprintf((BaseSequentialStream *)&SD3, " %u, ",compteur_test);
+                    chThdSleepMilliseconds(10);
+                }
+                
+                if (get_selector()==12)
+                    compteur_test = 660;*/
+
+                if (get_selector()==11){
+                    right_motor_set_pos(0);   //init des compteurs
+                    left_motor_set_pos(0);
+                }
+            }
+
+        }
+
     	else {
-
     		// Mode static sans jeu de lumiere
     		lumiere_eteinte();
 			left_motor_set_speed(0);
