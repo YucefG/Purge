@@ -5,6 +5,7 @@
 #include <string.h>
 #include <mesure.h>
 #include <math.h>
+#include <arm_math.h>
 #include <motors.h>
 #include <chprintf.h>
 #include <lumiere.h>
@@ -33,20 +34,6 @@ _Bool prox_distance(void){
 }
 
 
-
-void next_angle(uint16_t speed){
-	//aller
-			while((left_motor_get_pos()<TICS_1_MESURE)&&(right_motor_get_pos()<TICS_1_MESURE)){
-				left_motor_set_speed(speed);
-				right_motor_set_speed(-speed);
-			}
-			//on arrete et on initialise pour la prochaine mesure
-			left_motor_set_speed(0);
-			right_motor_set_speed(0);
-			left_motor_set_pos(0);
-			right_motor_set_pos(0);
-}
-
 //1ere etape: remplir le tableau avec le TOF
 void tour_mesures(void){
 	//initialiser les compteurs des moteurs
@@ -68,17 +55,17 @@ void tour_mesures(void){
 //2eme etape: detecter les objets
 void object_detec_proche(void){
 
-	if(tab_mesures[0]<DIAM_ARENE && tab_mesures[NB_MESURES-1]<DIAM_ARENE){
+	if(tab_mesures[0]<RAYON_ARENE && tab_mesures[NB_MESURES-1]<RAYON_ARENE){
 		uint16_t shortest_dist_g=tab_mesures[NB_MESURES-1];
 		uint8_t pos_shortest_g = NB_MESURES-1;
 		uint16_t shortest_dist_d=tab_mesures[0];
 		uint8_t pos_shortest_d = 0;
 		//compter la taille de l'objet sens normal
 		uint8_t j=0;
-		while((tab_mesures[j+1]<DIAM_ARENE)&&((j+1)<NB_MESURES))
+		while((tab_mesures[j+1]<RAYON_ARENE)&&((j+1)<NB_MESURES))
 			j++;
 		uint8_t k=0;
-		while((tab_mesures[NB_MESURES-1-k-1]<DIAM_ARENE)&& (k<NB_MESURES))
+		while((tab_mesures[NB_MESURES-1-k-1]<RAYON_ARENE)&& (k<NB_MESURES))
 			k++;
 
 		//taille de l'objet k+j+2
@@ -120,13 +107,13 @@ void object_detec_proche(void){
 	}
 
 	for(uint8_t i=0; i<NB_MESURES; i++){
-		if(tab_mesures[i]<DIAM_ARENE){	//rayon ou diam
+		if(tab_mesures[i]<RAYON_ARENE){	//rayon ou diam
 			uint8_t j = i;
-			while((tab_mesures[j+1]<DIAM_ARENE)&&((j+1)<NB_MESURES))
+			while((tab_mesures[j+1]<RAYON_ARENE)&&((j+1)<NB_MESURES))
 				j++;
 			if(j==i){}	//ne rien toucher si le point de mesure est isolé	
 			else{
-				uint16_t shortest_dist=DIAM_ARENE;
+				uint16_t shortest_dist=RAYON_ARENE;
 				uint8_t pos_shortest = i;
 				for(uint8_t k=0; k+i<=j; k++){				//<= ou <?
 					if(tab_mesures[k+i]<shortest_dist){

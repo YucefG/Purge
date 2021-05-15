@@ -19,6 +19,7 @@
 #include <lumiere.h>
 #include <analyse_couleur.h>
 #include <deplacement.h>
+#include <fonctions_maths.h>
 
 
 // On initialise ici le bus afin de pouvoir utiliser les capteurs de proximite "proximity"
@@ -85,7 +86,6 @@ int main(void)
 
     /* Boucle infinie */
     while (1) {
-		chprintf((BaseSequentialStream *)&SD3, "valeur du selecteur: %u",get_selector());
 
     	//Selecteur a 0 : mode static + jeu de LEDs
     	if(get_selector()==0){
@@ -103,11 +103,9 @@ int main(void)
     		    right_motor_set_speed(0);
         		lumiere_demarrage();
     		}
-    		chprintf((BaseSequentialStream *)&SD3, "dans le mode statique");
 
     	//	if(get_demarrage()==1){
     			//Eteindre toutes les LEDs
-        		chprintf((BaseSequentialStream *)&SD3, "va demarrer");
 
     			lumiere_eteinte();
 
@@ -119,10 +117,52 @@ int main(void)
     			object_push();
     	//	}
     	}
+        if(get_selector()==3){
+          //  mic_start(&processAudioData);
+         /*   if(get_demarrage()==0){
+                left_motor_set_speed(0);
+                right_motor_set_speed(0);
+                lumiere_demarrage();
+            }*/
+
+        //  if(get_demarrage()==1){
+                //Eteindre toutes les LEDs
+
+                lumiere_eteinte();
+
+                // Dans ces trois fonctions, ecrites dans mesure.c, le robot detecte les objets, s'approche des objets
+                // et pousse les objets
+                tour_mesures();
+                object_detec_proche();
+           //     show_mesures();
+                get_out_arena();
+                object_collect();
+                turn_90(-200);
+                ligne_droite_pi(MmToCm(RAYON_ARENE),true,true); //se place dans le cercle a cote et refait la meme chose
+
+
+        //  }
+        }
     	if(get_selector()==15){
-            bool boolv=1;
-            bool boolf=0;
-    		chprintf((BaseSequentialStream *)&SD3, "boolv= %u, boolf=%u ",boolv,boolf);
+                lumiere_eteinte();
+                chprintf((BaseSequentialStream *)&SD3, " CONNECTE");
+
+              /*  chprintf((BaseSequentialStream *)&SD3, " float1  %f ", MmToCm(RAYON_ARENE+MARGE_PERIPH));
+                chprintf((BaseSequentialStream *)&SD3, " %u ", RAYON_ARENE);
+
+                chprintf((BaseSequentialStream *)&SD3, " %u ", RAYON_ARENE);
+
+                chprintf((BaseSequentialStream *)&SD3, " float : %f ", MmToCm(RAYON_ARENE)); */
+
+             //   ligne_droite_pi(MmToCm(RAYON_ARENE+MARGE_PERIPH),true,true); //il va charger vers l'exterieur
+
+               // tour_mesures();
+               // object_detec_proche();
+           //     show_mesures();
+           //     get_out_arena();
+            //    turn_90(-200);
+            //    ligne_droite_pi(MmToCm(RAYON_ARENE),true,true); //se place dans le cercle a cote et refait la meme chose
+
     	}
     	if(get_selector()==14){
     	    //tester le pi en ligne droite avec consigne prédéfinie.
@@ -157,10 +197,21 @@ int main(void)
         }
 
     	else {
-    		// Mode static sans jeu de lumiere
+    		// Mode static sans jeu de lumiere 
+    /*        static float calcul1=2*PI/NB_MESURES;
+            static float calcul2=(float)RAYON_ROUE_INT;
+            float calcul3=calcul1*calcul2;
+
+                    chprintf((BaseSequentialStream *)&SD3, "calcul 1 : %f |", calcul1);
+                    chprintf((BaseSequentialStream *)&SD3, "calcul 2 : %f |", calcul2);
+                    chprintf((BaseSequentialStream *)&SD3, "calcul 2 : %f |", calcul3);*/
+          //  next_arc(9);
+
+
     		lumiere_eteinte();
 			left_motor_set_speed(0);
 		    right_motor_set_speed(0);
+   //         chThdSleepMilliseconds(500);
     	}
     }
  }
