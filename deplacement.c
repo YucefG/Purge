@@ -15,18 +15,17 @@
 #include <fonctions_maths.h>
 #include <deplacement.h>
 #include <mesure.h>
+#include <lumiere.h>
+#include <audio_processing.h>
+#include <selector.h>
 
-
+//compteurs pour ajustement d'angle
 static uint8_t compte_g = 0;
 static uint8_t compte_d = 0;
-bool onRoad = 1;
-static uint8_t indice_sortie = 0;
-static float coeff_convers = (float)100/(float)13;
-
-
-
-
-
+//si true: deplacement permis, sinon arret
+bool onRoad = 1;		
+//transmet a get_out_arena le dernier objet rouge poussé					 
+static uint8_t indice_sortie = 0;			
 
 int16_t pi_regulator(float distance, float goal)
 {
@@ -76,12 +75,6 @@ int16_t pi_regulator(float distance, float goal)
 //tourne jusqu'au prochain angle 360/NB_MESURES à la vitesse speed 
 void next_angle(uint16_t speed)
 {	
-	chprintf((BaseSequentialStream *)&SD3, " tics: %i", (int16_t)TICS_1_MESURE);
-	chprintf((BaseSequentialStream *)&SD3, " perim: %u", (int16_t)PERIM_CERC_PARC);
-	chprintf((BaseSequentialStream *)&SD3, " tics360: %i", (int16_t)TICS_360);
-
-
-
 	while((left_motor_get_pos()<TICS_1_MESURE)&&(right_motor_get_pos()<TICS_1_MESURE))
 	{
 		left_motor_set_speed(speed);
@@ -94,9 +87,11 @@ void next_angle(uint16_t speed)
 	right_motor_set_pos(0);
 }
 
-//avance en ligne droite jusqu'a objectif en cm, avance si avancer = true, recule sinon
-//charge si charge = true, sinon s'arrete si detection d'objet devant
-//important: n'initialise pas les compteurs de moteurs, à lancer avant la fonction
+/*
+*	avance en ligne droite jusqu'a objectif en cm, avance si avancer = true, recule sinon
+*	charge si charge = true, sinon s'arrete si detection d'objet devant
+*	important: n'initialise pas les compteurs de moteurs, à lancer avant la fonction
+*/
 void ligne_droite_pi(float objectif, bool avancer, bool charge)//objectif qui est en cm (positif ou negatif)
 {		
 	if(avancer==true)
@@ -137,18 +132,20 @@ void ligne_droite_pi(float objectif, bool avancer, bool charge)//objectif qui es
 	}
 }
 
-//centre le devant de l'epuck face à l'objet le plus proche
-//permet une meilleure prise de la caméra 
+/*
+*	centre le devant de l'epuck face à l'objet le plus proche
+*	permet une meilleure prise de la caméra 
+*/
 void ajustement_angle(void)
 {
 	uint16_t ajustement = 0;
 	ajustement = abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17));
-	chThdSleepMilliseconds(1000);			//necessaire? 
+	chThdSleepMilliseconds(1000);			 
 	while((get_calibrated_prox(PROX_FRONT_R17) > get_calibrated_prox(PROX_FRONT_L17)) &&
 			ajustement > SEUIL_AJUSTEMENT)
-	{ // seuil a modif
+	{
 		// recentrer
-		chThdSleepMilliseconds(100); //necessaire? 
+		chThdSleepMilliseconds(100); 
 		left_motor_set_speed(100);
 		right_motor_set_speed(-100);
 		compte_d++;
@@ -158,7 +155,7 @@ void ajustement_angle(void)
 			ajustement > SEUIL_AJUSTEMENT)
 	{
 		// recentrer
-		chThdSleepMilliseconds(100);//necessaire? 
+		chThdSleepMilliseconds(100); 
 		left_motor_set_speed(-CENT);
 		right_motor_set_speed(CENT);
 		compte_g ++;
@@ -181,7 +178,7 @@ void object_push(void)
 		}
 		next_angle(VITESSE_ROTA_ANGLES);	
 	}
-//	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
+	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
 	chThdSleepMilliseconds(1000);
 }
 
@@ -204,9 +201,11 @@ void re_axage_angle(void)
 	}
 }
 
-
-//s'approche d'un objet détecté, en fonction de la valeur du selecteur va charger l'objet 
-//ou non en dehors de la région de travail, délimitée par RAYON_ARENA+MARGE_PERIPH+MARGE_POUSSEE
+/*
+*	s'approche d'un objet détecté, en fonction de la valeur du selecteur 
+*	va charger l'objet ou non en dehors de la région de travail,
+*	délimitée par RAYON_ARENA+MARGE_PERIPH+MARGE_POUSSEE. 
+*/
 void deplacement_push(uint8_t indice)
 {
 	//étape 1: avancer jusqu'a l'objet détecté
@@ -224,10 +223,11 @@ void deplacement_push(uint8_t indice)
 	ajustement_angle();
 
 	//étape 3: en fonction de la valeur du selecteur: charger si rouge ou charger si objet
-	if((get_selector()==1)||(get_selector()==3))
+	if((get_selector()==1)||(get_selector()==2||get_selector()==5))
 	{
 		if(detec_rouge()==1)
 		{
+			playMelody(MARIO_DEATH, ML_FORCE_CHANGE, NULL);
 			//charge l'objet s'il est rouge jusqu'à l'exterieur de l'arène 
 			charge = CHARGE;
 			ligne_droite_pi(MmToCm((uint16_t)(RAYON_ARENE+MARGE_PERIPH+MARGE_POUSSEE)), avancer, charge);
@@ -243,7 +243,7 @@ void deplacement_push(uint8_t indice)
 			indice_sortie = indice;
 		}
 	}
-	else if(get_selector()==2)
+	else if(get_selector()==3)
 	{
 		//charge dans tous les cas l'objet jusqu'à l'exterieur de l'arène
 		charge = CHARGE;
@@ -280,11 +280,11 @@ void deplacement_push(uint8_t indice)
  
 void marche_avant(int16_t speed)
 {
-//	lumiere_eteinte();			//necessaire?
+	lumiere_eteinte();			
 	left_motor_set_speed(speed);
 	right_motor_set_speed(speed);
-//	lumiere_eteinte();		
-//	palClearPad(GPIOD, GPIOD_LED1);		//necessaire? 
+	lumiere_eteinte();		
+	palClearPad(GPIOD, GPIOD_LED1);	 
 }
 
 /*
@@ -347,7 +347,7 @@ void object_collect(void)
 		next_arc(VITESSE_ARC);
 	}
 	turn_90(VITESSE_ROTA_ANGLES);//finit en faisant face au tas
-//	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
+	playMelody(MARIO_FLAG, ML_FORCE_CHANGE, NULL);
 	chThdSleepMilliseconds(1000);
 }
 

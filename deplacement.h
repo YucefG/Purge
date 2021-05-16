@@ -1,26 +1,29 @@
 #ifndef DEPLACEMENT_H
 #define DEPLACEMENT_H
 
+//Defines du hardware non modifiable
 #define COEFF_MM_2_STEPS				100/13
-#define MARGE_POUSSEE					80
-#define MAX_VITESSE_PI					1000
-#define VITESSE_ROTA_ANGLES				200
+
+// Defines que l'on peut modifier
 #define VITESSE_ARC						9
-#define ABSENCE_OBJET					0
+#define VITESSE_ROTA_ANGLES				200
+
+//Defines optimises deconseille de modifier
+#define MARGE_POUSSEE					80
+#define MAX_VITESSE_PI					1000 
 #define SEUIL_AJUSTEMENT 				20
-#define CENT							100
 
-
+//Constantes arbitraires
 #define MARCHE_AVANT 					true
 #define MARCHE_ARRIERE 					false
-
 #define CHARGE 							true
 #define PAS_CHARGE						false
-
 #define COMPTEUR_BASE					0
-
 #define MM_2_CM							0.1f
-//#define MAX_TICS						((RAYON_ARENE+MARGE_PERIPH+MARGE_POUSSEE)*COEFF_MM_2_STEPS
+#define CENT							100
+#define ABSENCE_OBJET					0
+
+
 
 
 int16_t pi_regulator(float distance, float goal);

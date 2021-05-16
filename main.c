@@ -13,6 +13,7 @@
 #include <selector.h>
 #include <sensors/proximity.h>
 #include <audio/play_melody.h>
+#include <audio/audio_thread.h>
 #include <audio_processing.h>
 #include <arm_math.h>
 #include <mesure.h>
@@ -60,9 +61,9 @@ int main(void)
     messagebus_init(&bus, &bus_lock, &bus_condvar);
 
 
-    //Starts the serial communication
+    //Start la communication en serie
     serial_start();
-    //Starts the USB communication
+    //Start la communication USB
     usb_start();
     //Initialsation des moteurs pas a pas du robot
     motors_init();
@@ -90,40 +91,16 @@ int main(void)
     	//Selecteur == 0 : mode static + jeu de LEDs
     	if(get_selector()==0)
     	{
-    		left_motor_set_speed(0);
-    		right_motor_set_speed(0);
+            init_vitesse_mot();
     		lumiere_demarrage();
     	}
-
-    	/* Selecteur == 1: premier mode lance
-    	 * Le robot au son  "purge" se met a analyser les objets dans son arene
-    	 * et  sortira uniquement les rouges
-    	 * Selecteur 2: le robot sort tous les objets */
-    	if((get_selector()==1)||(get_selector()==2))
-    	{
-    		mic_start(&processAudioData);
-    		if(get_demarrage()==0)
-    		{
-    			left_motor_set_speed(0);
-    		    right_motor_set_speed(0);
-        		lumiere_demarrage();
-    		}
-    		//Eteindre toutes les LEDs
-    		lumiere_eteinte();
-
-    	/*Dans ces trois fonctions :
-    	* le robot detecte les objets,
-    	* s'approche des objets
-    	* et pousse les objets*/
-    		tour_mesures();
-    		object_detec_proche();
-    		object_push();
-    	}
-
-    	/*Slecteur == 3 :
-    	 * le robot detecte les objets,
-    	 * Sort de l'arene et centralise tous les objets a l'interieur de celle-ci  */
-        if(get_selector()==3)
+        
+        /*
+        *  Selecteur == 1 :
+        *  le robot detecte les objets, sort les objets rouges de l'arene,
+        *  et collecte au centre de l'arene tous les objets restants (non rouges)  
+        */
+        if(get_selector()==1)
         {
             lumiere_eteinte();
             tour_mesures();
@@ -135,13 +112,106 @@ int main(void)
             object_collect();
             turn_90(DEUX_CENTS);
             signal_fin();
+            //boucle infinie pour la fin de la tache
+            while(1)
+            {
+                 lumiere_clignote();
+                 chThdSleepMilliseconds(1000);
+            }             
         }
+    	
+        /*
+        * Selecteur == 2:
+    	* Le robot au son  "purge" se met a analyser les objets dans son arene
+    	* et sortira uniquement les rouges.
+    	* Selecteur == 3:
+        * le robot sort tous les objets.
+        */
+    	if((get_selector()==2)||(get_selector()==3))
+    	{
+            //Eteindre toutes les LEDs
+            lumiere_eteinte();
+            /*
+            *  Dans ces trois fonctions :
+            *  le robot detecte les objets,
+            *  s'approche des objets
+            *  et pousse les objets*/
+            tour_mesures();
+            object_detec_proche();
+            object_push();
+            //boucle infinie pour la fin de la tache
+            while(1)
+            {
+                 lumiere_clignote();
+                 chThdSleepMilliseconds(1000);
+            }            
+    	}
+
+        /*
+        *  Selecteur == 4 :
+        *  le robot collecte tous les objets dans l'arene,
+        *  sans distinction. Il sort de l'arene dans la direction
+        *  de la mesure 0. 
+        */
+        if(get_selector()==4)
+        {
+            lumiere_eteinte();
+            tour_mesures();
+            object_detec_proche();
+            get_out_arena();
+            object_collect();
+            turn_90(DEUX_CENTS);
+            signal_fin();
+             //boucle infinie pour la fin de la tache
+            while(1)
+            {
+                 lumiere_clignote();
+                 chThdSleepMilliseconds(1000);
+            }
+        }
+        
+        /*
+        *  Selecteur == 5 :
+        *  le robot detecte les objets, sort les objets rouges de l'arene,
+        *  et collecte au centre de l'arene tous les objets restants (non rouges),
+        *  mais seulement après avoir capté la fréquence 406 Hz.
+        */
+
+        if((get_selector()==5))
+        {
+            mic_start(&processAudioData);         //a quoi sert ce if? cest plutot un while non? 
+            if(get_demarrage()==0)
+            {
+                init_vitesse_mot();
+                lumiere_demarrage();
+            }
+            else
+            {
+                lumiere_eteinte();
+                tour_mesures();
+                object_detec_proche();
+                object_push();
+                tour_mesures();
+                object_detec_proche();
+                get_out_arena();
+                object_collect();
+                turn_90(DEUX_CENTS);
+                signal_fin();
+                //boucle infinie pour la fin de la tache
+                while(1)
+                {
+                    lumiere_clignote();
+                    chThdSleepMilliseconds(1000);
+                }
+            }
+        }
+
+
     	else
     	{
     		// Mode static sans jeu de lumiere 
     		lumiere_eteinte();
-			left_motor_set_speed(0);
-		    right_motor_set_speed(0);
+			init_vitesse_mot();
     	}
     }
  }

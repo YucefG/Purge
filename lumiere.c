@@ -9,7 +9,6 @@
 #include <mesure.h>
 #include <audio_processing.h>
 
-
 void lumiere_eteinte(void)
 {
 
