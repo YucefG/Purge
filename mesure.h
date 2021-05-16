@@ -4,7 +4,7 @@
 //Defines du hardware
 #define ANGLE360				360
 #define D_ENTRE_ROUES			53			//en mm
-#define PERIM_CERC_PARC			D_ENTRE_ROUES*PI		//perimetre du cercle parcouru par les roues en 360
+#define PERIM_CERC_PARC			D_ENTRE_ROUES*PI		//Perimetre du cercle parcouru par les roues en 360°
 #define TICS_1_TOUR				1000
 #define DISTANCE_1_TOUR			130			//en mm
 #define OFFSET					30
@@ -39,17 +39,11 @@
 #define KP						100.0f
 #define KI 						0.3f	//must not be zero
 #define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
-#define MAX_SUM_ERROR 			300 //(MOTOR_SPEED_LIMIT/KI)
+#define MAX_SUM_ERROR 			300      //(MOTOR_SPEED_LIMIT/KI)
 
 bool prox_distance(void);
 void tour_mesures(void);
 void object_detec_proche(void);
-
-uint16_t get_mesure_i(uint8_t i);
-void set_mesure_i(uint16_t distance_i, uint8_t i);
-void show_mesures(void);
-
-uint8_t get_compteur(void);
 void dec_compteur(void);
 
 

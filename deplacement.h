@@ -7,6 +7,8 @@
 #define VITESSE_ROTA_ANGLES				200
 #define VITESSE_ARC						9
 #define ABSENCE_OBJET					0
+#define SEUIL_AJUSTEMENT 				20
+#define CENT							100
 
 
 #define MARCHE_AVANT 					true

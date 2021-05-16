@@ -7,10 +7,11 @@
 #include <motors.h>
 #include <chprintf.h>
 #include <mesure.h>
+#include <audio_processing.h>
 
 
-
-void lumiere_eteinte(void){
+void lumiere_eteinte(void)
+{
 
 	palSetPad(GPIOD, GPIOD_LED1);
 	palSetPad(GPIOD, GPIOD_LED3);
@@ -19,7 +20,8 @@ void lumiere_eteinte(void){
 
 }
 
-void lumiere_demarrage(void){
+void lumiere_demarrage(void)
+{
 
 	if(get_demarrage()==0)
 		palClearPad(GPIOD, GPIOD_LED1);
@@ -88,13 +90,15 @@ void check_compteur(uint8_t compteur)
 		palClearPad(GPIOD, GPIOD_LED3);
 		palClearPad(GPIOD, GPIOD_LED5);
 	}
-	else if(compteur ==4 ){
+	else if(compteur ==4 )
+	{
 		palClearPad(GPIOD, GPIOD_LED1);
 		palClearPad(GPIOD, GPIOD_LED3);
 		palClearPad(GPIOD, GPIOD_LED5);
 		palClearPad(GPIOD, GPIOD_LED7);
 	}
-	else{
+	else
+	{
 		lumiere_clignote();
 	}
 }

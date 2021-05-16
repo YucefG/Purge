@@ -11,7 +11,6 @@ extern "C" {
 #include "sensors/VL53L0X/VL53L0X.h"
 
 
-
 /** Robot wide IPC bus. */
 extern messagebus_t bus;
 

@@ -4,6 +4,8 @@
 
 #define FFT_SIZE 	1024
 
+bool get_demarrage(void);
+
 typedef enum {
 	//2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
 	LEFT_CMPLX_INPUT = 0,
@@ -30,6 +32,6 @@ void wait_send_to_computer(void);
 */
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
-bool get_demarrage(void);
+
 
 #endif /* AUDIO_PROCESSING_H */

@@ -10,19 +10,23 @@
 #include <stdint.h>
 
 
-float StepsToCm(int32_t nbSteps){
+float StepsToCm(int32_t nbSteps)
+{
 	return (float)((float)(nbSteps*13)/(float)(1000));
 }
 
-float MmToCm(uint16_t ValeurMm){
+float MmToCm(uint16_t ValeurMm)
+{
 	return (float)((float)ValeurMm)/((float)10);
 }
 
-int16_t CmToSteps(float ValeurCm){
+int16_t CmToSteps(float ValeurCm)
+{
 	return (int16_t)((int16_t)ValeurCm*1000)/((int16_t)13);
 }
 
-float Multi(float val1, uint16_t val2){
+float Multi(float val1, uint16_t val2)
+{
 	return (float)(val1*(float)val2);
 }
 

@@ -145,7 +145,7 @@ void ajustement_angle(void)
 	ajustement = abs(get_calibrated_prox(PROX_FRONT_R17) - get_calibrated_prox(PROX_FRONT_L17));
 	chThdSleepMilliseconds(1000);			//necessaire? 
 	while((get_calibrated_prox(PROX_FRONT_R17) > get_calibrated_prox(PROX_FRONT_L17)) &&
-			ajustement > 20)
+			ajustement > SEUIL_AJUSTEMENT)
 	{ // seuil a modif
 		// recentrer
 		chThdSleepMilliseconds(100); //necessaire? 
@@ -155,12 +155,12 @@ void ajustement_angle(void)
 	}
 
 	while((get_calibrated_prox(PROX_FRONT_R17) < get_calibrated_prox(PROX_FRONT_L17)) &&
-			ajustement > 20)
+			ajustement > SEUIL_AJUSTEMENT)
 	{
 		// recentrer
 		chThdSleepMilliseconds(100);//necessaire? 
-		left_motor_set_speed(-100);
-		right_motor_set_speed(100);
+		left_motor_set_speed(-CENT);
+		right_motor_set_speed(CENT);
 		compte_g ++;
 	}
 }
@@ -190,16 +190,16 @@ void re_axage_angle(void)
 	while(compte_d !=0)
 	{
 		chThdSleepMilliseconds(100);
-		left_motor_set_speed(-100);
-		right_motor_set_speed(100);
+		left_motor_set_speed(-CENT);
+		right_motor_set_speed(CENT);
 		compte_d --;
 	}
 
 	while(compte_g !=0 )
 	{
 		chThdSleepMilliseconds(100);
-		left_motor_set_speed(100);
-		right_motor_set_speed(-100);
+		left_motor_set_speed(CENT);
+		right_motor_set_speed(-CENT);
 		compte_g --;
 	}
 }
@@ -451,7 +451,6 @@ void get_out_arena(void)
 	init_pos_mot();
 	init_vitesse_mot();
 	chThdSleepMilliseconds(100);
-
 }
 
 /*
