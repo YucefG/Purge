@@ -23,7 +23,7 @@
 static uint8_t compte_g = 0;
 static uint8_t compte_d = 0;
 //si true: deplacement permis, sinon arret
-bool onRoad = 1;		
+bool onRoad = EN_CHEMIN;		
 //transmet a get_out_arena le dernier objet rouge poussé					 
 static uint8_t indice_sortie = 0;			
 
@@ -36,11 +36,11 @@ int16_t pi_regulator(float distance, float goal)
 	//disables the PI regulator if the error is to small
 	if(fabs(error) < ERROR_THRESHOLD)
 	{
-		onRoad = 0 ;
-		return 0;
+		onRoad = ARRET ;
+		return VITESSE_NULLE;
 	}
 	else
-		onRoad = 1;
+		onRoad = EN_CHEMIN;
 
 	sum_error += error;
 	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
@@ -56,10 +56,10 @@ int16_t pi_regulator(float distance, float goal)
 	speed = KP * error + KI * sum_error;
 
 	//Mettre le booleen onRoad a 0 car on arrive a destination
-	if(abs(speed)<40)
+	if(abs(speed)<SEUIL_VIT_NUL_PI)
 	{
-		onRoad = 0 ;
-		return 0;
+		onRoad = ARRET ;
+		return VITESSE_NULLE;
 	}
 
 	//Ajustement de la vitesse max positive ou négative car problémes au max du hardware
@@ -81,10 +81,8 @@ void next_angle(uint16_t speed)
 		right_motor_set_speed(-speed);
 	}
 	//on arrete et on initialise pour la prochaine mesure
-	left_motor_set_speed(0);
-	right_motor_set_speed(0);
-	left_motor_set_pos(0);
-	right_motor_set_pos(0);
+	init_vitesse_mot();
+	init_pos_mot();
 }
 
 /*
@@ -94,12 +92,12 @@ void next_angle(uint16_t speed)
 */
 void ligne_droite_pi(float objectif, bool avancer, bool charge)//objectif qui est en cm (positif ou negatif)
 {		
-	if(avancer==true)
+	if(avancer==MARCHE_AVANT)
 	{
 		//avance sans s'arreter si detection d'objet devant (charge) + LED frontale
-		if(charge==true)
+		if(charge==CHARGE)
 		{	
-			onRoad = 1;
+			onRoad = EN_CHEMIN;
 			palSetPad(GPIOD, GPIOD_LED_FRONT);
 			while(onRoad)
 			{
@@ -110,7 +108,7 @@ void ligne_droite_pi(float objectif, bool avancer, bool charge)//objectif qui es
 		//avance en s'arretant si detection d'objet devant + LED 1 
 		else
 		{
-			onRoad = 1;
+			onRoad = EN_CHEMIN;
 			palClearPad(GPIOD, GPIOD_LED1);
 			while(prox_distance()&&onRoad)
 			{
@@ -120,11 +118,11 @@ void ligne_droite_pi(float objectif, bool avancer, bool charge)//objectif qui es
 		}
 	}
 	//recule sans s'arreter si objet derriere (passage propre) + LED 5 
-	if(avancer==false)
+	if(avancer==MARCHE_ARRIERE)
 	{
-		onRoad = 1;
+		onRoad = EN_CHEMIN;
 		palClearPad(GPIOD, GPIOD_LED5);
-		while((left_motor_get_pos()>0)&&(right_motor_get_pos()>0)&&onRoad)
+		while((left_motor_get_pos()>COMPTEUR_BASE)&&(right_motor_get_pos()>COMPTEUR_BASE)&&onRoad)
 		{
 			marche_avant(pi_regulator(StepsToCm(right_motor_get_pos()), objectif));
 		}
@@ -170,7 +168,7 @@ void object_push(void)
 {
 	for(uint8_t i=0;i<NB_MESURES;i++)
 	{
-		if(get_mesure_i(i)!=0)
+		if(get_mesure_i(i)!=ABSENCE_OBJET)
 		{	
 			deplacement_push(i);
 			dec_compteur();
@@ -184,7 +182,7 @@ void object_push(void)
 
 void re_axage_angle(void)
 {
-	while(compte_d !=0)
+	while(compte_d != COMPTEUR_BASE)
 	{
 		chThdSleepMilliseconds(100);
 		left_motor_set_speed(-CENT);
@@ -192,7 +190,7 @@ void re_axage_angle(void)
 		compte_d --;
 	}
 
-	while(compte_g !=0 )
+	while(compte_g != COMPTEUR_BASE)
 	{
 		chThdSleepMilliseconds(100);
 		left_motor_set_speed(CENT);
@@ -232,7 +230,7 @@ void deplacement_push(uint8_t indice)
 			charge = CHARGE;
 			ligne_droite_pi(MmToCm((uint16_t)(RAYON_ARENE+MARGE_PERIPH+MARGE_POUSSEE)), avancer, charge);
 			init_vitesse_mot();
-			chThdSleepMilliseconds(100);
+			chThdSleepMilliseconds(500);
 			//revient à sa position avant la charge
 			charge = PAS_CHARGE;
 			avancer = MARCHE_ARRIERE;
@@ -260,6 +258,7 @@ void deplacement_push(uint8_t indice)
 	init_vitesse_mot();
 	chThdSleepMilliseconds(100);
 	re_axage_angle();
+	init_vitesse_mot();
 
 	//étape 5: faire marche arrière jusqu'à la base de mesure
 	avancer = MARCHE_ARRIERE; 
@@ -297,7 +296,7 @@ void next_arc(float speed)
 	init_pos_mot();
 
 	//apres de nombreux bugs avec les defines, préférences pour variables locales
-	static float coeff_convers = (float)100/(float)13;
+	static float coeff_convers = (float)COEFFSTEPSCM/(float)PERIM_ROUE_CM;
 	static float angle_rad=2*PI/NB_MESURES;
 
 	float temps = (float)(((float)ARC_1_MESURE_EPUCK)*(MM_2_CM)/speed); //	mm->cm
@@ -336,7 +335,7 @@ void object_collect(void)
 	*/
 	for(uint8_t i=0;i<NB_MESURES;i++)
 	{
-		if(get_mesure_i(i)!=0)
+		if(get_mesure_i(i)!=ABSENCE_OBJET)
 		{	
 			turn_90(VITESSE_ROTA_ANGLES);
 			deplacement_collect(i);
@@ -404,7 +403,9 @@ void deplacement_collect(uint8_t indice){
 	}
 	
 	re_axage_angle();
-	chThdSleepMilliseconds(100); //pour marquer un temps d'arret avant analyse
+	init_vitesse_mot();
+
+	chThdSleepMilliseconds(100); 
 
 	//etape 5: Marche arriere jusqu'a la peripherie
 	/*
@@ -464,8 +465,7 @@ void turn_90(int16_t speed)
 		left_motor_set_speed(speed);
 		right_motor_set_speed(-speed); 
 	}
-	left_motor_set_speed(0);
-	right_motor_set_speed(0);
+	init_vitesse_mot();
 }
 
 //initialise les compteurs de moteur.

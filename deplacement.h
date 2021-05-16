@@ -1,9 +1,6 @@
 #ifndef DEPLACEMENT_H
 #define DEPLACEMENT_H
 
-//Defines du hardware non modifiable
-#define COEFF_MM_2_STEPS				100/13
-
 // Defines que l'on peut modifier
 #define VITESSE_ARC						9
 #define VITESSE_ROTA_ANGLES				200
@@ -12,6 +9,10 @@
 #define MARGE_POUSSEE					80
 #define MAX_VITESSE_PI					1000 
 #define SEUIL_AJUSTEMENT 				20
+#define SEUIL_VIT_NUL_PI				40
+#define COEFF_MM_2_STEPS				100/13
+#define COEFFSTEPSCM					100
+#define PERIM_ROUE_CM					13
 
 //Constantes arbitraires
 #define MARCHE_AVANT 					true
@@ -22,6 +23,10 @@
 #define MM_2_CM							0.1f
 #define CENT							100
 #define ABSENCE_OBJET					0
+#define PRESENCE_OBJET					1
+#define EN_CHEMIN						true
+#define ARRET							false
+#define VITESSE_NULLE					0
 
 
 

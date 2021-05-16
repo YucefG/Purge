@@ -67,7 +67,7 @@ void object_detec_proche(void){
 	*		etape 1:
 	* 		Regler les problemes de rebouclement du tableau de mesures.
 	*/
-	if(tab_mesures[0]<RAYON_ARENE && tab_mesures[NB_MESURES-1]<RAYON_ARENE)
+	if(tab_mesures[COMPTEUR_BASE]<RAYON_ARENE && tab_mesures[NB_MESURES-1]<RAYON_ARENE)
 	{
 		/*
 		*		Comparer les premieres et dernieres valeurs du tableau. 
@@ -76,8 +76,8 @@ void object_detec_proche(void){
 		*/
 		uint16_t shortest_dist_g=tab_mesures[NB_MESURES-1];
 		uint8_t pos_shortest_g = NB_MESURES-1;
-		uint16_t shortest_dist_d=tab_mesures[0];
-		uint8_t pos_shortest_d = 0;
+		uint16_t shortest_dist_d=tab_mesures[COMPTEUR_BASE];
+		uint8_t pos_shortest_d = ABSENCE_OBJET;
 		//Compter la taille de l'objet : trouver un debut et une fin
 		uint8_t j=0;
 		//trouver la taille de l'objet sur la droite en partant du début du tableau
@@ -94,12 +94,12 @@ void object_detec_proche(void){
 			if(tab_mesures[l]<shortest_dist_d)
 			{
 				shortest_dist_d = tab_mesures[l];
-				tab_mesures[pos_shortest_d]=0;
+				tab_mesures[pos_shortest_d]=ABSENCE_OBJET;
 				pos_shortest_d = l;
-				tab_mesures[l]=1;
+				tab_mesures[l]=PRESENCE_OBJET;
 			}
 			else
-				tab_mesures[l]=0;
+				tab_mesures[l]=ABSENCE_OBJET;
 		}
 		//trouver le point de mesure minimal a la fin du tableau
 		for(uint8_t t=1; t<=k;t++)
@@ -110,10 +110,10 @@ void object_detec_proche(void){
 		    	tab_mesures[pos_shortest_g]=0;
 				shortest_dist_g = tab_mesures[NB_MESURES-1-t];
 				pos_shortest_g = NB_MESURES-1-t;
-				tab_mesures[NB_MESURES-1-t]=1;
+				tab_mesures[NB_MESURES-1-t]=PRESENCE_OBJET;
 			}
 			else
-				tab_mesures[NB_MESURES-1-t]=0;
+				tab_mesures[NB_MESURES-1-t]=ABSENCE_OBJET;
 		}
  		/*
  		*	On compare les deux minimas des deux cotés du cercle:
@@ -123,11 +123,11 @@ void object_detec_proche(void){
 		if(shortest_dist_d<shortest_dist_g)
 		{
 			tab_mesures[pos_shortest_d]=shortest_dist_d;
-			tab_mesures[pos_shortest_g]=0;
+			tab_mesures[pos_shortest_g]=ABSENCE_OBJET;
 		}
 		else
 		{
-			tab_mesures[pos_shortest_d]=0;
+			tab_mesures[pos_shortest_d]=ABSENCE_OBJET;
 			tab_mesures[pos_shortest_g]=shortest_dist_g;
 		}
 	}
@@ -160,27 +160,27 @@ void object_detec_proche(void){
 					{
 						shortest_dist = tab_mesures[k+i];
 						//mettre a 0 si ce n'est pas un point de mesure minimal
-						tab_mesures[pos_shortest]=0;
+						tab_mesures[pos_shortest]=ABSENCE_OBJET;
 						pos_shortest = k+i;
 						//garder sa mesure en memoire pour aider la fonction de deplacement 
 						tab_mesures[k+i]=shortest_dist;
 					}
 					else
-					tab_mesures[k+i]=0;
+					tab_mesures[k+i]=ABSENCE_OBJET;
 				}
 			}
 		//saut de l'indice car objet de taille j-i analysé
 		i=j;
 		}
 		else
-		tab_mesures[i]=0;
+		tab_mesures[i]=ABSENCE_OBJET;
 	}
 
 	//mesure du nombre d'objets
 	compteur = 0;
 	for(uint8_t i=0; i<NB_MESURES; i++)
 	{
-		if(tab_mesures[i]!=0)
+		if(tab_mesures[i]!=ABSENCE_OBJET)
 			compteur++;
 	}
 	/*	

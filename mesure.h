@@ -22,7 +22,7 @@
 #define RAYON_COLLECT			70			//en mm
 
 //Defines optimises deconseille de modifier 
-#define KP						100.0f
+#define KP						50.0f
 #define KI 						0.3f	//must not be zero
 #define LIMITE_COLLISION		1000	//pour pas de chocs via capt de prox
 #define MARGE_PERIPH			40u
