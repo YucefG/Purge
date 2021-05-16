@@ -21,6 +21,7 @@ static uint8_t compte_g = 0;
 static uint8_t compte_d = 0;
 bool onRoad = 1;
 static uint8_t indice_sortie = 0;
+static float coeff_convers = (float)100/(float)13;
 
 
 
@@ -74,8 +75,13 @@ int16_t pi_regulator(float distance, float goal)
 
 //tourne jusqu'au prochain angle 360/NB_MESURES à la vitesse speed 
 void next_angle(uint16_t speed)
-{
-	//aller
+{	
+	chprintf((BaseSequentialStream *)&SD3, " tics: %i", (int16_t)TICS_1_MESURE);
+	chprintf((BaseSequentialStream *)&SD3, " perim: %u", (int16_t)PERIM_CERC_PARC);
+	chprintf((BaseSequentialStream *)&SD3, " tics360: %i", (int16_t)TICS_360);
+
+
+
 	while((left_motor_get_pos()<TICS_1_MESURE)&&(right_motor_get_pos()<TICS_1_MESURE))
 	{
 		left_motor_set_speed(speed);
@@ -373,6 +379,7 @@ void deplacement_collect(uint8_t indice){
 	pos_detection = StepsToCm(right_motor_get_pos());
 	chThdSleepMilliseconds(100); //pour marquer un temps d'arret avant analyse
 	ajustement_angle();
+	chThdSleepMilliseconds(100); //pour marquer un temps d'arret avant analyse
 
 	//etape 3:  charge de l'objet jusqu'a environ le centre de l'arene, puis recul.
 	/*
@@ -397,6 +404,7 @@ void deplacement_collect(uint8_t indice){
 	}
 	
 	re_axage_angle();
+	chThdSleepMilliseconds(100); //pour marquer un temps d'arret avant analyse
 
 	//etape 5: Marche arriere jusqu'a la peripherie
 	/*

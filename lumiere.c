@@ -49,7 +49,6 @@ void lumiere_clignote(void)
 	palTogglePad(GPIOD, GPIOD_LED3);
 	palTogglePad(GPIOD, GPIOD_LED5);
 	palTogglePad(GPIOD, GPIOD_LED7);
-
 }
 
 void signal_fin(void)

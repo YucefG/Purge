@@ -18,7 +18,7 @@
 #define PROX_FRONT_L17			7
 
 // Defines que l'on peut modifier
-#define NB_MESURES				30     //taille max limité par uint8
+#define NB_MESURES				20     //taille max limité par uint8
 #define TICS_360				(PERIM_CERC_PARC*TICS_1_TOUR)/DISTANCE_1_TOUR   //nb de tics pour faire un 360
 #define TICS_90					TICS_360/4
 #define TICS_1_MESURE			TICS_360/NB_MESURES
@@ -36,7 +36,7 @@
 #define RAYON_COLLECT			70			//en mm
 
 
-#define KP						50.0f
+#define KP						100.0f
 #define KI 						0.3f	//must not be zero
 #define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
 #define MAX_SUM_ERROR 			300 //(MOTOR_SPEED_LIMIT/KI)

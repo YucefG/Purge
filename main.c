@@ -123,6 +123,8 @@ int main(void)
             tour_mesures();
             object_detec_proche();
             object_push();
+            tour_mesures();
+            object_detec_proche();
             get_out_arena();
             object_collect();
             turn_90(200);
