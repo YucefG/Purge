@@ -2,6 +2,9 @@
 #define FONCTIONS_MATHS_H
 #include <stdint.h>
 
+#define DIX			10
+
+
 float StepsToCm(int32_t nbSteps);
 float MmToCm(uint16_t ValeurMm);
 int16_t CmToSteps(float ValeurCm);

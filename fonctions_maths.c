@@ -8,25 +8,22 @@
 #include <chprintf.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <deplcament.h>
+#include <mesure.h>
 
 
 float StepsToCm(int32_t nbSteps)
 {
-	return (float)((float)(nbSteps*13)/(float)(1000));
+	return (float)((float)(nbSteps*PERIM_ROUE_CM)/(float)(TICS_1_TOUR));
 }
 
 float MmToCm(uint16_t ValeurMm)
 {
-	return (float)((float)ValeurMm)/((float)10);
+	return (float)((float)ValeurMm)/((float)DIX);
 }
 
 int16_t CmToSteps(float ValeurCm)
 {
-	return (int16_t)((int16_t)ValeurCm*1000)/((int16_t)13);
-}
-
-float Multi(float val1, uint16_t val2)
-{
-	return (float)(val1*(float)val2);
+	return (int16_t)((int16_t)ValeurCm*TICS_1_TOUR)/((int16_t)PERIM_ROUE_CM);
 }
 
