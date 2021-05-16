@@ -8,7 +8,7 @@
 #include <chprintf.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <deplcament.h>
+#include <deplacement.h>
 #include <mesure.h>
 
 
