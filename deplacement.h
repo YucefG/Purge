@@ -4,6 +4,20 @@
 #define COEFF_MM_2_STEPS				100/13
 #define MARGE_POUSSEE					80
 #define MAX_VITESSE_PI					1000
+#define VITESSE_ROTA_ANGLES				200
+#define VITESSE_ARC						9
+#define ABSENCE_OBJET					0
+
+
+#define MARCHE_AVANT 					true
+#define MARCHE_ARRIERE 					false
+
+#define CHARGE 							true
+#define PAS_CHARGE						false
+
+#define COMPTEUR_BASE					0
+
+#define MM_2_CM							0.1f
 //#define MAX_TICS						((RAYON_ARENE+MARGE_PERIPH+MARGE_POUSSEE)*COEFF_MM_2_STEPS
 
 
@@ -11,6 +25,7 @@ int16_t pi_regulator(float distance, float goal);
 void next_angle(uint16_t speed);
 void ligne_droite_pi(float objectif, bool avancer, bool charge);
 void ajustement_angle(void);
+void re_axage_angle(void);
 void object_push(void);
 void deplacement_push(uint8_t indice);
 void marche_avant(int16_t speed);
@@ -20,5 +35,7 @@ void object_collect(void);
 void deplacement_collect(uint8_t indice);
 void get_out_arena(void);
 void turn_90(int16_t speed);
+void init_pos_mot(void);
+void init_vitesse_mot(void);
 
 #endif /* DEPLACEMENT_H */

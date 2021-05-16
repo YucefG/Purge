@@ -117,31 +117,16 @@ int main(void)
     			object_push();
     	//	}
     	}
-        if(get_selector()==3){
-          //  mic_start(&processAudioData);
-         /*   if(get_demarrage()==0){
-                left_motor_set_speed(0);
-                right_motor_set_speed(0);
-                lumiere_demarrage();
-            }*/
-
-        //  if(get_demarrage()==1){
-                //Eteindre toutes les LEDs
-
-                lumiere_eteinte();
-
-                // Dans ces trois fonctions, ecrites dans mesure.c, le robot detecte les objets, s'approche des objets
-                // et pousse les objets
-                tour_mesures();
-                object_detec_proche();
-           //     show_mesures();
-                get_out_arena();
-                object_collect();
-                turn_90(-200);
-                ligne_droite_pi(MmToCm(RAYON_ARENE),true,true); //se place dans le cercle a cote et refait la meme chose
-
-
-        //  }
+        if(get_selector()==3)
+        {
+            lumiere_eteinte();
+            tour_mesures();
+            object_detec_proche();
+            object_push();
+            get_out_arena();
+            object_collect();
+            turn_90(200);
+            signal_fin();
         }
     	if(get_selector()==15){
                 lumiere_eteinte();
@@ -166,33 +151,7 @@ int main(void)
     	}
     	if(get_selector()==14){
     	    //tester le pi en ligne droite avec consigne prédéfinie.
-    		float position = 0;
-            float distance_arbitraire=-10; //en cm? en tics?
-            right_motor_set_pos(0);   //init des compteurs
-            left_motor_set_pos(0);
-        //    uint16_t compteur_test =0; //simulation du compteur qui s'incremente
-            while(get_selector()==14){
-                position = (float)((float)(right_motor_get_pos()*13)/(float)(1000)); //retourne le compteur
-
-                //on retourne la consigne de vitesse donnée à l'epuck
-
-                marche_avant(pi_regulator(position,distance_arbitraire));
-   //             chThdSleepMilliseconds(1000);
-              /*  if (get_selector()==13){
-                	compteur_test++;
-                    chprintf((BaseSequentialStream *)&SD3, "compteur_test s'incremente: ");
-                    chprintf((BaseSequentialStream *)&SD3, " %u, ",compteur_test);
-                    chThdSleepMilliseconds(10);
-                }
-                
-                if (get_selector()==12)
-                    compteur_test = 660;*/
-
-                if (get_selector()==11){
-                    right_motor_set_pos(0);   //init des compteurs
-                    left_motor_set_pos(0);
-                }
-            }
+    		get_out_arena();
 
         }
 
